@@ -1,0 +1,4 @@
+.hero-meta,
+.hero-copy > .actions {
+  gap: 16px;
+}
