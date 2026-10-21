@@ -45,6 +45,8 @@ h3 { letter-spacing:-.03em; margin:0 0 7px }
 .hero:before { content:""; position:absolute; width:70%;height:110px;right:-5%;bottom:-38px;background:var(--aqua);border-radius:50% 50% 0 0;opacity:.6; }
 .hero-copy { position:relative;z-index:2;max-width:580px }
 .hero h1 span { color:var(--coral) }
+.dark .hero h1 { color:#1f3047 }
+.dark .hero-copy > .muted { color:#43566b }
 .hero-art { position:relative; z-index:1; align-self:end; justify-self:center; width:min(100%,390px); margin-bottom:-20px; mix-blend-mode:multiply; filter:drop-shadow(0 20px 12px rgba(54,67,54,.13)); }
 .hero-meta { display:flex; flex-wrap:wrap;gap:8px;margin:16px 0 22px }
 .pill { display:inline-flex; align-items:center; gap:7px; padding:8px 12px; border-radius:999px; background:rgba(255,250,240,.72); font-size:12px; font-weight:800; }
