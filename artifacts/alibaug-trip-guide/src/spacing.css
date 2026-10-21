@@ -124,3 +124,92 @@
     gap: var(--space-2);
   }
 }
+
+.main {
+  padding-block: 32px 58px;
+}
+
+.main > .section,
+.main > section.section {
+  margin-block: 32px;
+}
+
+.section-head {
+  margin-bottom: 18px;
+}
+
+.card {
+  padding-block: 24px;
+}
+
+.actions,
+.hero-meta,
+.stat-row,
+.grid-days,
+.prep-groups,
+.passport,
+.stop-list,
+.detail-actions {
+  row-gap: 14px;
+}
+
+.day-card {
+  padding-block: 20px;
+}
+
+.day-card h3 {
+  margin-top: 16px;
+  margin-bottom: 8px;
+}
+
+.day-banner,
+.place-hero,
+.sand-footer {
+  padding-block: 32px;
+}
+
+.day-banner p,
+.place-hero p,
+.card p {
+  margin-block: 12px;
+}
+
+.stop-head {
+  padding-block: 18px;
+}
+
+.stop-detail {
+  padding-bottom: 20px;
+}
+
+.subtabs {
+  margin-block: 16px;
+}
+
+.map-page {
+  gap: 22px !important;
+}
+
+.map-controls {
+  gap: 20px !important;
+}
+
+@media (max-width: 720px) {
+  .main {
+    padding-block: 24px 48px;
+  }
+
+  .card {
+    padding-block: 20px;
+  }
+
+  .day-banner,
+  .place-hero,
+  .sand-footer {
+    padding-block: 26px;
+  }
+
+  .stop-head {
+    padding-block: 16px;
+  }
+}
