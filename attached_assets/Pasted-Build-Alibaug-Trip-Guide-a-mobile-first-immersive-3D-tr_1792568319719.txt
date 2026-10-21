@@ -1,0 +1,77 @@
+Build "Alibaug Trip Guide": a mobile-first, immersive 3D trip-guide website for a 4-day trip (27-30 Nov 2026, 2 travellers, staying at Blue Waves Resort, Varsoli, Alibaug). It is a handy illustrated GUIDE first, with a Journey experience. I'll paste the itinerary at the end; follow it exactly (times, hard rules, fallbacks).
+
+STACK
+
+Vite + React + TypeScript, plain CSS with CSS variables, Zustand for state. HashRouter so GitHub Pages never 404s.
+3D: three + @react-three/fiber + @react-three/drei. Motion: GSAP + ScrollTrigger (or framer-motion). Lazy-load the 3D chunk.
+vite-plugin-pwa: installable, itinerary data and graphics work offline. base path from an env var; README explains how to set it.
+GitHub Actions workflow to build and deploy to Pages. README covers dev, build, deploy and editing data.
+All content in /src/data as typed files (itinerary, places, food, checklists). No hard-coded content in components.
+LOOK (light, beachy; study my two inspo references)
+
+Inspo 1 (vacation app UI): rounded glassy cards, big hero imagery, a glossy orange-gradient pill CTA with a circular arrow button, category chips with circular icons (Beach, Fort, Food, Ferry, Sunset), Review/Photos/Cost-style tabs (use Tips / Food / Photos), a "Where do you want to go?" jump bar, and faint line-art landmark silhouettes in the background (use Gateway of India, Janjira, Kolaba Fort, a lighthouse and palms).
+Inspo 2 (beach landing page): grainy sand-dune wave shapes, bold geometric headline type, a coral/pink panel, floating translucent circles, and small floating props (shell, umbrella, cocktail).
+Palette (approximate; sampled from my images, adjust by eye): cream #f8f2e4 (page, matches the illustration background), sand #f2d8b6, deep sand #e6bf93, peach #f9cdb3, coral #f2546f, sunset orange gradient #ffa13d to #ff5e2b, sky #d6e8fb, aqua #7fd0d4, deep sea #2f7fa6, foam #ffffff, sage #86ad8b (the scooty), brown #7a4a36, ink #1f3047, muted #6b7a8c. Day colours: Day 1 coral, Day 2 sunset orange, Day 3 deep sea, Day 4 sage.
+Light theme is the default. Build it all with CSS variables and add an optional "night beach" dark theme (navy #14212e, card #1f3347, sand #3a3226, same accents) behind a toggle. Check contrast in both.
+Font: Plus Jakarta Sans, self-hosted via @fontsource (500, 700, 800), with big, bold, fluid headings (clamp()).
+Soft shadows, 20-28 px radii, glass cards (backdrop-filter with a solid fallback), grain texture overlay (SVG feTurbulence) on sand surfaces.
+No "golden rules" section anywhere.
+MY GRAPHICS (public/graphics/characters/) Six illustrations of the couple on a green scooty: looking.png, lessgoo.png (peace sign), happy.png (laughing), kiss.png (kiss on the cheek, heart), driving.png (side view riding), parked.png (side view, stopped). They have a cream background, so:
+
+Add scripts/make-transparent.mjs that flood-fills the background from the corners with a tolerance and writes transparent WebP at 1x and 2x. Use mix-blend-mode: multiply as the fallback on light surfaces.
+Pose map: lessgoo = hero, start buttons, first stop of each day; driving = any travel leg and the route sprite in 3D; parked = arrival at a stop, idle states; happy = stamp collected, food and beach stops; kiss = sunset at Kihim, trip complete, footer; looking = "What's now?", exploring and loading states.
+Keep one assets.ts manifest. If a file is missing, show an emoji or SVG placeholder in the same palette so the app still runs.
+Also support optional per-place art: place-.webp, stamp-.webp, day-1..4 banners (SVG seal fallback for stamps).
+3D JOURNEY (the immersive part)
+
+A stylised soft-clay 3D coast diorama: sand islands extruded from shape paths, a water plane with a gentle animated shader (soft waves, foam near the shore), simple palms, a lighthouse, and fort shapes built from primitives. Lighting shifts toward golden hour for sunset stops.
+The day's route is a glowing dashed 3D tube. Places are floating 3D pins with an emoji badge. The couple (my PNGs as billboarded sprites with a soft shadow blob) travel along the route, bobbing, and switch pose by state (driving while moving, parked at stops, etc.).
+Scroll-driven camera fly-through along a CatmullRomCurve3 that follows the stops in order. On desktop add drag-to-orbit (limited angles) and mouse parallax. On mobile use a drag with momentum and tap to select. Tapping a pin focuses the camera and opens a bottom sheet (desktop: a side drawer) with that stop's details.
+Map positions: use stylised x/z positions in the data until I provide lat/lng. Never invent coordinates; flag missing ones in the README.
+Performance: dpr clamped (max 1.5 on mobile), instanced meshes, no heavy post-processing on mobile, pause rendering when the tab is hidden, aim for 60 fps on a mid-range phone. Provide a static poster fallback if WebGL is unavailable, prefers-reduced-motion is set or data-saver is on.
+A "Guide mode / Journey mode" switch so I can always use the plain list view.
+WAVES WASHING FROM THE TOP
+
+A TideWash component: 3-4 layered SVG waves (aqua, deeper aqua, white foam, wet-sand tint) with a foam line and a few bubbles. On first load and when changing day, the water washes down from the top of the screen across the viewport, then recedes upward, revealing the page. About 1.8 s, eased. For reduced motion, use a simple fade.
+Also a persistent, slow, ambient wave edge under the sticky header, and a small ripple whenever a stamp is collected.
+SAND FOOTER
+
+A full-width sand section: a scalloped, wavy top edge with a wet-sand band and a thin foam line, grainy sand texture (SVG noise), a soft gradient, scattered shells, a starfish and pebbles, a trail of footprints, and a tiny crab that scurries when tapped. Tapping the sand leaves a fading footprint or shell. The kiss.png couple sits parked on the sand on tablet and desktop. Footer content: trip summary, countdown, quick links, and the "verify before travel" note.
+LAYOUT (adaptive)
+
+Mobile first (360 px and up): fixed bottom nav (Home, Journey, Days, Stamps, Prep) with safe-area insets, bottom sheets, thumb-friendly 44 px targets.
+Tablet (768 px and up): two columns, with the day list and the 3D scene side by side.
+Desktop (1100 px and up): top nav, a 380 px left timeline, a sticky 3D scene on the right and a detail drawer. At 1440 px and up, wider gutters and larger type. Use container queries and fluid sizing; no horizontal scrolling at any width.
+SCREENS AND FEATURES
+
+Home: hero with lessgoo.png, title, dates, resort, a live countdown to 27 Nov 2026, "Start from Day 1" (glossy orange CTA) and "What's now?" (opens the stop matching the current time on trip days; otherwise Day 1 with a friendly message). Then "Jump to a day" (4 coloured cards with N/M done) and "Jump to a place" (category chips and place chips).
+Days: day tabs, a coloured banner with progress, a button "Open the whole day's route in Google Maps", then collapsible stop cards: time, title, place art, tick when done. Expanded: the note, tabs for Tips / Food / Photos, and these buttons:
+"From my location" (Google Maps directions, no origin)
+"From " (origin = the previous different place; hide on the first stop)
+"I'm here: stamp it!" (marks the stop done, collects the stamp, with a toast, confetti and the happy.png pose)
+"Maps" (place search), "Photos" (Google Images search), "About"
+Place page: art, stamp status, a fun fact, three tips, buttons (Stamp, Open in Maps, Navigate, Photos), an embedded Google map via iframe (https://www.google.com/maps?q=&output=embed; the provider is switchable in one config file), and "When you're here" linking to each visit. The resort page has an "Exact resort pin" input (address or lat,lng), saved and used for navigation to the resort.
+Map: a real Leaflet map (OpenStreetMap, with attribution, a "locate me" button) as the 2D alternative to the 3D view, with the day selector, markers and the route polyline.
+Stamps: a passport grid with my stamp art (SVG seal fallback); uncollected ones are greyscale and faded; N/total and a celebration at 100 per cent.
+Prep: tickable checklists (Now, One week before, 48 hours before, Pack) and a note that all fares and times are estimates. Progress (done stops, stamps, ticks, pin, theme) is saved in localStorage inside try/catch and works if storage is empty.
+NAVIGATION LINKS (Google Maps URLs API, new tab, rel="noopener")
+
+Directions: https://www.google.com/maps/dir/?api=1&destination= &origin=<enc, optional>&travelmode=<two-wheeler for Alibaug-area legs, transit for Mumbai legs>
+Whole day: origin = first place, destination = last place, waypoints = the rest joined with %7C (each one encoded).
+Place search: https://www.google.com/maps/search/?api=1&query=
+Photos: https://www.google.com/search?tbm=isch&q=
+FOOD (meal stops: dishes, where, a "Find on Maps" button, and a line "verify hours before you go")
+
+Lunch near Varsoli: Samadhan Restaurant (fish thali, solkadhi)
+Alibaug lunch: Sanman Restaurant, Alibaug Market Road (jitada fry, surmai or prawns thali); Shalimar for a pomfret thali
+Murud lunch: Patil Khanaval (Malvani-Konkani seafood thali)
+Revdanda road: Hotel Patang (surmai thali with bombil fry)
+CSMT: Aram Vada Pav
+Breakfasts: misal pav, poha, idli with chai
+Resort dinners: ask for the day's fresh catch, bhakri, solkadhi
+Bus dinner: something that travels well, order by about 6 PM
+PLACES (name, emoji, colour, map query, one fun fact, three tips each) Thane CBS, CSMT, BKC/Santacruz, Gateway of India, Mandwa Jetty, Kihim Beach, Alibaug, Blue Waves Resort (Varsoli), Nagaon Beach, Revdanda, Korlai Fort, Kashid, Murud-Janjira.
+
+QUALITY Typographic apostrophes in visible text. Visible focus, keyboard operable (including keyboard controls for the 3D camera), alt text, reduced-motion support, Lighthouse accessibility and PWA scores above 90, typecheck and lint pass.
+
+DELIVERABLE First give a short plan: the file tree, the components, the asset manifest, the 3D scene breakdown and what I still need to supply (lat/lng, extra art). Wait for my go-ahead. Then build in stages: (1) data, routing, theme, screens and the Guide mode, (2) the TideWash, sand footer and character poses, (3) the 3D Journey, (4) the PWA, deploy and polish. End with a "verify before you travel" list (bus timings, tide table, ferry and boat times, scooty rental, resort check-in).
