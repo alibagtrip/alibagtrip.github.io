@@ -73,6 +73,7 @@ h3 { letter-spacing:-.03em; margin:0 0 7px }
 .day-tab.selected { color:white;border-color:transparent }
 .stop-list { display:grid;gap:12px }
 .stop { border-radius:22px;background:var(--card);border:1px solid var(--line);overflow:hidden }
+.stop::before { content:"Image placeholder · add activity photo"; min-height:150px;display:grid;place-items:center;margin:12px 12px 0;border:1px dashed var(--line);border-radius:16px;background:var(--sand);color:var(--muted);font-size:13px;font-weight:800 }
 .stop-head { width:100%;display:flex;align-items:center;gap:13px;padding:17px;border:0;background:none;text-align:left;color:inherit }
 .stop-time { min-width:78px;font:700 12px ui-monospace,monospace;color:var(--coral) }
 .stop-title { font-weight:900;flex:1 }
