@@ -1,0 +1,4 @@
+section:has(#pin-input),
+.map-controls a[href="/place/blue-waves-resort"] {
+  display: none !important;
+}
