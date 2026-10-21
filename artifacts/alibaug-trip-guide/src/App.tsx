@@ -14,6 +14,7 @@ import './hero.css';
 import './spacing.css';
 import './hero-spacing.css';
 import './resort-pin.css';
+import './illustration-accents.css';
 
 type Saved={done:string[];checks:string[];theme:'light'|'dark';pin:string};
 const KEY='alibaug-guide-v1';
