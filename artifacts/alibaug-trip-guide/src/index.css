@@ -128,8 +128,6 @@ h3 { letter-spacing:-.03em; margin:0 0 7px }
 .footer-character { width:100%;mix-blend-mode:multiply }
 .footprint { position:absolute;bottom:24px;font-size:20px;animation:fadefoot 3s forwards;pointer-events:none }
 @keyframes fadefoot { to { opacity:0;transform:translateY(-10px) } }
-.crab { border:0;background:#f2546f;color:#fff;border-radius:100% 100% 40% 40%;padding:10px 13px;animation:crab 2s ease-in-out infinite alternate }
-@keyframes crab { to { transform:translateX(14px) } }
 .bottom-nav { display:none }
 .toast { position:fixed;z-index:40;bottom:90px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--cream);padding:13px 20px;border-radius:999px;font-weight:800;font-size:13px;box-shadow:var(--shadow);animation:toastin .3s ease-out }
 @keyframes toastin { from { opacity:0;transform:translate(-50%,12px) } }
