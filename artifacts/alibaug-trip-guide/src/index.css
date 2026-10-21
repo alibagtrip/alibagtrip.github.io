@@ -104,12 +104,11 @@ h3 { letter-spacing:-.03em; margin:0 0 7px }
 .checklist { display:grid;gap:10px }
 .checkline { display:flex;gap:10px;align-items:flex-start;padding:11px;border-radius:14px;background:color-mix(in srgb,var(--sand) 48%,transparent);font-size:13px;line-height:1.45 }
 .checkline input { accent-color:var(--coral);width:18px;height:18px;flex:none }
-.journey-poster { min-height:420px;display:grid;place-items:center;position:relative;overflow:hidden;border-radius:28px;background:linear-gradient(160deg,#8ed7d4,#cce9e5 50%,#f2d8b6 51%,#f5c898); }
-.journey-poster:before { content:"";position:absolute;inset:60% -5% -20%;background:repeating-radial-gradient(ellipse at 50% 0%,transparent 0 26px,rgba(255,255,255,.45) 27px 30px); }
-.journey-island { width:85%;height:110px;border-radius:50%;background:#f4d5a9;position:absolute;bottom:13%;box-shadow:inset 0 13px rgba(255,255,255,.3),0 20px 30px #438b8d55; }
-.journey-people { position:relative;z-index:2;width:210px;mix-blend-mode:multiply;filter:drop-shadow(0 10px 9px #335b4c44) }
-.journey-pin { position:absolute;z-index:3;left:var(--x);top:var(--y);border:0;background:white;border-radius:50%;width:38px;height:38px;color:var(--coral);font-weight:900;box-shadow:0 5px 15px #39748055 }
-.journey-controls { position:absolute;z-index:4;right:15px;top:15px;display:grid;gap:7px }
+.journey-activities { display:grid;gap:18px }
+.journey-activity { display:grid;grid-template-columns:minmax(180px,260px) 1fr;gap:22px;align-items:center }
+.journey-image-placeholder { min-height:180px;display:grid;place-content:center;gap:8px;padding:20px;text-align:center;border:1px dashed var(--line);border-radius:18px;background:var(--sand);color:var(--muted);font-size:13px }
+.journey-image-placeholder strong { color:var(--ink);font-size:15px }
+.journey-activity-copy h2 { margin-top:8px }
 .sand-footer { margin:50px -22px 0;padding:68px 22px 24px;position:relative;overflow:hidden;background:linear-gradient(180deg,var(--sand),#e9c69f); }
 .sand-footer:before { content:"";position:absolute;inset:0;opacity:.13;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.3'/%3E%3C/svg%3E") }
 .sand-footer:after { content:"";position:absolute;top:0;left:0;right:0;height:18px;background:radial-gradient(22px 11px at 22px 0,var(--cream) 98%,transparent 101%) repeat-x;background-size:44px 18px;pointer-events:none }
@@ -138,4 +137,5 @@ h3 { letter-spacing:-.03em; margin:0 0 7px }
  .shell{padding:0 16px 95px}.topbar{height:64px}.nav-links{display:none}.hero{grid-template-columns:1fr;min-height:0;padding:28px 24px 0}.hero-art{width:230px;margin:0 auto -15px;max-height:190px;object-fit:contain;object-position:bottom}.hero-copy{z-index:2}.hero h1{font-size:46px}.grid-days{grid-template-columns:repeat(2,1fr)}.stop-detail{padding-left:18px}.place-hero{grid-template-columns:1fr;padding:22px}.place-hero .character{width:190px;justify-self:center}.prep-groups{grid-template-columns:1fr}.footer-inner{grid-template-columns:1fr}.footer-character{display:none}.sand-footer{margin-left:-16px;margin-right:-16px}.bottom-nav{position:fixed;z-index:30;bottom:0;left:0;right:0;display:flex;justify-content:space-around;gap:2px;padding:8px 6px calc(8px + env(safe-area-inset-bottom));background:color-mix(in srgb,var(--card) 94%,transparent);backdrop-filter:blur(12px);border-top:1px solid var(--line)}.bottom-nav a{display:grid;justify-items:center;gap:2px;min-width:56px;min-height:46px;font-size:10px;font-weight:900;color:var(--muted)}.bottom-nav a.active{color:var(--coral)}.bottom-nav span:first-child{font-size:18px}.journey-poster{min-height:360px}.toast{bottom:90px}
 }
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}.tide{animation:fadewash .25s}}
+@media(max-width:760px){.journey-activity{grid-template-columns:1fr;gap:16px}.journey-image-placeholder{min-height:160px}}
 @media(min-width:1100px){.shell{padding-inline:30px}.main{padding-top:34px}.sand-footer{margin-inline:-30px}}
