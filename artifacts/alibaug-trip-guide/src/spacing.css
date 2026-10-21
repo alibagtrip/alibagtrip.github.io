@@ -242,3 +242,15 @@
   font-size: 12px;
   font-weight: 800;
 }
+
+.footer-character {
+  width: 260px;
+  max-width: 40%;
+}
+
+@media (max-width: 720px) {
+  .footer-character {
+    width: 180px;
+    max-width: 42%;
+  }
+}
