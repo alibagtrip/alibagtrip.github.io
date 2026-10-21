@@ -66,6 +66,7 @@ function StopCard({stop,previous,index}:{stop:Stop;previous?:string;index:number
 
   <img
     className="stop-illustration"
+    style={{ display: 'none' }}
     src={`/graphics/journey/${stop.id}.png`}
     alt={stop.title}
     loading="lazy"
