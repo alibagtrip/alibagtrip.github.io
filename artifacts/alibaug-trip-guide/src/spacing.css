@@ -219,6 +219,14 @@
   margin-top: 24px;
 }
 
+.map-controls .day-tab {
+  color: var(--ink);
+}
+
+.map-controls .day-tab.selected {
+  color: #fff;
+}
+
 .route-list {
   display: grid;
   gap: 10px;
