@@ -22,7 +22,7 @@ button,a { -webkit-tap-highlight-color:transparent }
 a { color:inherit; text-decoration:none }
 button { cursor:pointer }
 button:focus-visible,a:focus-visible,input:focus-visible { outline:3px solid #2f7fa6; outline-offset:3px }
-.dark { color-scheme:dark; --cream:#14212e; --card:#1f3347; --sand:#3a3226; --sand-deep:#544534; --peach:#573d3c; --ink:#f5eddf; --muted:#c2cfda; --line:#385064; --shadow:0 16px 40px rgba(0,0,0,.25); background:#14212e; color:#f5eddf; }
+.dark { color-scheme:dark; --cream:#14212e; --card:#1d3040; --sand:#263b4c; --sand-deep:#3d596a; --peach:#2b4353; --ink:#f5eddf; --muted:#bdcbd5; --line:#30495b; --shadow:0 16px 40px rgba(0,0,0,.25); background:#14212e; color:#f5eddf; }
 #root { min-height:100vh }
 .shell { max-width:1200px; margin:auto; padding:0 22px 40px; }
 .topbar { height:76px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:20; background:var(--cream); }
