@@ -22,9 +22,8 @@ function imageSearch(q:string){return`https://www.google.com/search?tbm=isch&q=$
 function directions(destination:string,origin?:string,mode='two-wheeler'){const travel=/Thane CBS|CSMT|Chhatrapati|BKC|Santacruz|Gateway of India|Mandwa Jetty/i.test(`${destination} ${origin||''}`)?'transit':mode;return`https://www.google.com/maps/dir/?api=1&destination=${encode(destination)}${origin?`&origin=${encode(origin)}`:''}&travelmode=${travel}`}
 function wholeDay(dayId:number){const stops=days.find(d=>d.id===dayId)?.stops||[];const unique=stops.map(s=>placeFor(s.placeId).query).filter((v,i,a)=>a.indexOf(v)===i);if(unique.length<2)return mapsSearch(unique[0]||'Alibaug');const origin=encode(unique[0]);const destination=encode(unique[unique.length-1]);const waypoints=unique.slice(1,-1).map(encode).join('%7C');return`https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}${waypoints?`&waypoints=${waypoints}`:''}&travelmode=${dayId===1||dayId===4?'transit':'two-wheeler'}`}
 function GuideApp(){
- const [saved,setSaved]=useState<Saved>(safeRead);const [location,setLocation]=useLocation();const [toast,setToast]=useState('');const [wash,setWash]=useState(false);const [stampRipple,setStampRipple]=useState(false);
+ const [saved,setSaved]=useState<Saved>(safeRead);const [location,setLocation]=useLocation();const [toast,setToast]=useState('');const [stampRipple,setStampRipple]=useState(false);
  useEffect(()=>{try{localStorage.setItem(KEY,JSON.stringify(saved))}catch{};document.documentElement.classList.toggle('dark',saved.theme==='dark')},[saved]);
- useEffect(()=>{setWash(true);const t=window.setTimeout(()=>setWash(false),1450);return()=>window.clearTimeout(t)},[location]);
  const notify=(message:string)=>{setToast(message);window.setTimeout(()=>setToast(''),2600)};
  const toggleDone=(id:string)=>{const already=saved.done.includes(id);setSaved(s=>({...s,done:already?s.done.filter(x=>x!==id):[...s.done,id]}));if(!already){setStampRipple(true);window.setTimeout(()=>setStampRipple(false),850);notify('Stamp collected — this little moment is yours.')}else notify('Stop marked not done.')};
  const toggleCheck=(id:string)=>setSaved(s=>({...s,checks:s.checks.includes(id)?s.checks.filter(v=>v!==id):[...s.checks,id]}));
@@ -39,7 +38,7 @@ function GuideApp(){
    <Route path="/stamps" component={Stamps}/>
    <Route path="/prep" component={Prep}/>
    <Route component={NotFound}/>
- </Switch></main><SandFooter/><BottomNav location={location}/></div>{wash&&<div className="tide" aria-hidden="true"/>}{stampRipple&&<div className="ripple" aria-hidden="true"/>}{toast&&<div className="toast" role="status" data-testid="status-toast">{toast}</div>}</AppContext.Provider>;
+ </Switch></main><SandFooter/><BottomNav location={location}/></div>{stampRipple&&<div className="ripple" aria-hidden="true"/>}{toast&&<div className="toast" role="status" data-testid="status-toast">{toast}</div>}</AppContext.Provider>;
 }
  function App(){return <Router hook={useHashLocation}><GuideApp/></Router>}
  type Context={saved:Saved;setSaved:React.Dispatch<React.SetStateAction<Saved>>;location:string;setLocation:(path:string)=>void;notify:(m:string)=>void;toggleDone:(id:string)=>void;toggleCheck:(id:string)=>void;toggleTheme:()=>void};
