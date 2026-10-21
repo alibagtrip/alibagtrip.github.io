@@ -26,8 +26,6 @@ button:focus-visible,a:focus-visible,input:focus-visible { outline:3px solid #2f
 #root { min-height:100vh }
 .shell { max-width:1200px; margin:auto; padding:0 22px 40px; }
 .topbar { height:76px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:20; background:color-mix(in srgb,var(--cream) 92%,transparent); backdrop-filter:blur(14px); border-bottom:1px solid var(--line); }
-.topbar:after { content:""; position:absolute; height:8px; left:0; right:0; bottom:-8px; background:radial-gradient(18px 8px at 18px 0,var(--aqua) 99%,transparent 101%) repeat-x; background-size:36px 8px; opacity:.6; animation:wave 9s linear infinite; }
-@keyframes wave { to { background-position:36px 0 } }
 .brand { display:flex; align-items:center; gap:10px; font-weight:900; letter-spacing:-.04em; font-size:18px }
 .brand-mark { display:grid; place-items:center; width:38px;height:38px;border-radius:13px;background:var(--coral);color:white;font-size:20px;transform:rotate(-5deg) }
 .nav-links { display:flex; gap:5px; align-items:center }
