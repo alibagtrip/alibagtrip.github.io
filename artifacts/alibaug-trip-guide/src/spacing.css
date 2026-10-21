@@ -227,6 +227,10 @@
   color: #fff;
 }
 
+.passport {
+  margin-top: 24px;
+}
+
 .route-list {
   display: grid;
   gap: 10px;
