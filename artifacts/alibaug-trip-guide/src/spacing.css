@@ -214,6 +214,10 @@
   }
 }
 
+.prep-groups {
+  row-gap: 24px;
+}
+
 .route-list {
   display: grid;
   gap: 10px;
