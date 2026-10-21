@@ -1,0 +1,126 @@
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+}
+
+.main > .section,
+.main > section.section {
+  margin-block: var(--space-6);
+}
+
+.section-head {
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.card {
+  padding: var(--space-5);
+}
+
+.actions,
+.hero-meta,
+.stat-row {
+  gap: var(--space-2);
+}
+
+.btn {
+  min-height: 42px;
+  padding: 10px 15px;
+}
+
+.grid-days,
+.prep-groups,
+.passport {
+  gap: var(--space-3);
+}
+
+.day-card {
+  padding: var(--space-4);
+}
+
+.day-card h3 {
+  margin: var(--space-3) 0 var(--space-1);
+}
+
+.day-banner,
+.place-hero,
+.sand-footer {
+  padding: var(--space-6);
+}
+
+.day-banner p,
+.place-hero p,
+.card p {
+  margin-block: var(--space-2);
+}
+
+.stop-list {
+  gap: var(--space-3);
+}
+
+.stop-image {
+  height: 180px;
+  margin: var(--space-3) var(--space-3) 0;
+  width: calc(100% - 24px);
+}
+
+.stop-head {
+  gap: var(--space-3);
+  padding: 14px var(--space-4);
+}
+
+.stop-detail {
+  padding-bottom: var(--space-4);
+  line-height: 1.6;
+}
+
+.subtabs {
+  gap: var(--space-2);
+  margin-block: var(--space-3);
+}
+
+.detail-actions {
+  gap: var(--space-2);
+}
+
+.tip-list li + li {
+  margin-top: var(--space-2);
+}
+
+.map-page {
+  gap: var(--space-4) !important;
+}
+
+.map-controls {
+  gap: var(--space-4) !important;
+}
+
+@media (max-width: 720px) {
+  .card,
+  .day-banner,
+  .place-hero,
+  .sand-footer {
+    padding: var(--space-4);
+  }
+
+  .stop-image {
+    height: 160px;
+  }
+
+  .stop-head {
+    gap: var(--space-2);
+    padding: var(--space-3);
+  }
+
+  .stop-detail {
+    padding-inline: var(--space-3);
+  }
+
+  .section-head {
+    gap: var(--space-2);
+  }
+}

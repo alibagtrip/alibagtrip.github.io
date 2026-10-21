@@ -11,6 +11,7 @@ import { characterAssets } from '@/data/assets';
 import NotFound from '@/pages/not-found';
 import './index.css';
 import './hero.css';
+import './spacing.css';
 
 type Saved={done:string[];checks:string[];theme:'light'|'dark';pin:string};
 const KEY='alibaug-guide-v1';
