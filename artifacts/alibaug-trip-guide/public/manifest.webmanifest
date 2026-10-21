@@ -1,0 +1,13 @@
+{
+  "name": "Alibaug Trip Guide",
+  "short_name": "Alibaug",
+  "description": "A cheerful pocket field guide for four days on the coast.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f8f2e4",
+  "theme_color": "#f2546f",
+  "icons": [
+    { "src": "./favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
