@@ -50,6 +50,7 @@ h3 { letter-spacing:-.03em; margin:0 0 7px }
 .hero-art { position:relative; z-index:1; align-self:end; justify-self:center; width:min(100%,390px); margin-bottom:-20px; mix-blend-mode:multiply; filter:drop-shadow(0 20px 12px rgba(54,67,54,.13)); }
 .hero-meta { display:flex; flex-wrap:wrap;gap:8px;margin:16px 0 22px }
 .pill { display:inline-flex; align-items:center; gap:7px; padding:8px 12px; border-radius:999px; background:rgba(255,250,240,.72); font-size:12px; font-weight:800; }
+.dark .hero .pill { color:#1f3047 }
 .actions { display:flex;gap:10px;flex-wrap:wrap }
 .btn { display:inline-flex;justify-content:center;align-items:center;gap:8px;min-height:46px;padding:11px 17px;border:0;border-radius:999px;background:var(--card);color:var(--ink);font-size:13px;font-weight:900;box-shadow:0 5px 15px rgba(64,50,35,.08); transition:transform .18s,opacity .18s }
 .btn:hover { transform:translateY(-2px) }
