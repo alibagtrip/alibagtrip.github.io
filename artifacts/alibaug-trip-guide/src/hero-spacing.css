@@ -1,4 +1,30 @@
+.hero {
+  min-height: 400px;
+  padding-block: 48px;
+}
+
+.hero-copy {
+  display: grid;
+  align-content: center;
+  gap: 16px;
+}
+
+.hero-copy h1,
+.hero-copy p {
+  margin-block: 0;
+}
+
 .hero-meta,
 .hero-copy > .actions {
   gap: 16px;
+}
+
+@media (max-width: 720px) {
+  .hero {
+    padding: 34px 24px 0;
+  }
+
+  .hero-copy {
+    gap: 14px;
+  }
 }
