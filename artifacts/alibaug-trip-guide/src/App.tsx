@@ -12,6 +12,7 @@ import { characterAssets } from '@/data/assets';
 import Wallet from '@/components/Wallet';
 import NotFound from '@/pages/not-found';
 import './index.css';
+import './bottom-nav.css';
 import './hero.css';
 import './spacing.css';
 import './hero-spacing.css';
