@@ -8,7 +8,7 @@ From the workspace root, run `pnpm --filter @workspace/alibaug-trip-guide dev` (
 
 ## GitHub Pages
 
-The workflow in `.github/workflows/deploy.yml` builds with `BASE_PATH=/<repository-name>/` and deploys the static bundle. For a custom domain or root Pages deployment, set `BASE_PATH=/`. Keep the trailing slash. App navigation uses hash routes, so it does not require a Pages rewrite. GitHub only discovers workflows from the repository-root `.github/workflows/`; move this artifact-local workflow there when promoting the app out of this workspace.
+The repository-root workflow in `.github/workflows/deploy.yml` builds with `BASE_PATH=/` for the user site at `alibagtrip.github.io`, then uploads `dist/public` (including its root `index.html`) as the Pages artifact. App navigation uses hash routes, so it does not require a Pages rewrite.
 
 ## Editing the guide
 
