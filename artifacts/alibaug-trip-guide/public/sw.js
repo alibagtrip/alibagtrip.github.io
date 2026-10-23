@@ -1,4 +1,4 @@
-const CACHE = 'alibaug-fieldguide-v1';
+const CACHE = 'alibaug-fieldguide-v2';
 const CORE = ['./', './index.html', './manifest.webmanifest'];
 self.addEventListener('install', event => {
   event.waitUntil((async () => {
@@ -24,5 +24,5 @@ self.addEventListener('fetch', event => {
       caches.open(CACHE).then(cache => cache.put(request, copy));
     }
     return response;
-  }).catch(() => caches.match('./index.html'))));
+  }).catch(() => request.mode === 'navigate' ? caches.match('./index.html') : Response.error())));
 });
