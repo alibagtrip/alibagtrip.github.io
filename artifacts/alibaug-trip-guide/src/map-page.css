@@ -1,0 +1,4 @@
+.map-page > .card {
+  width: min(100%, 760px);
+  justify-self: center;
+}
