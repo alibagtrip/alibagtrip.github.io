@@ -8,6 +8,7 @@ import { days, type Stop } from '@/data/itinerary';
 import { places } from '@/data/places';
 import { checklistGroups } from '@/data/checklists';
 import { characterAssets } from '@/data/assets';
+import Wallet from '@/components/Wallet';
 import NotFound from '@/pages/not-found';
 import './index.css';
 import './hero.css';
@@ -15,6 +16,7 @@ import './spacing.css';
 import './hero-spacing.css';
 import './resort-pin.css';
 import './card-images.css';
+import './wallet.css';
 
 type Saved={done:string[];checks:string[];theme:'light'|'dark';pin:string};
 const KEY='alibaug-guide-v1';
@@ -43,6 +45,7 @@ function GuideApp(){
     <Route path="/map" component={LeafletMapPage}/>
    <Route path="/stamps" component={Stamps}/>
    <Route path="/prep" component={Prep}/>
+   <Route path="/wallet" component={Wallet}/>
    <Route component={NotFound}/>
  </Switch></main><SandFooter/><BottomNav location={location}/></div>{stampRipple&&<div className="ripple" aria-hidden="true"/>}{toast&&<div className="toast" role="status" data-testid="status-toast">{toast}</div>}</AppContext.Provider>;
 }
@@ -52,10 +55,10 @@ const AppContext=React.createContext<Context|null>(null);
 const LazyJourneyScene=lazy(()=>import('@/components/JourneyScene'));
 function useGuide(){const c=React.useContext(AppContext);if(!c)throw new Error('Guide context missing');return c}
 function Header({theme,onTheme,location}:{theme:string;onTheme:()=>void;location:string}){
- const links=[['Home','/'],['Journey','/journey'],['Map','/map'],['Stamps','/stamps'],['Prep','/prep']];
+ const links=[['Home','/'],['Journey','/journey'],['Map','/map'],['Wallet','/wallet'],['Stamps','/stamps'],['Prep','/prep']];
  return <header className="topbar"><Link href="/" className="brand" data-testid="link-home"><span className="brand-mark" aria-hidden="true">A</span><span>Alibaug <span style={{color:'var(--coral)'}}>field guide</span></span></Link><nav className="nav-links" aria-label="Main navigation">{links.map(([label,path])=><Link key={label} href={path} className={`nav-link ${location===path?'active':''}`} data-testid={`nav-${label.toLowerCase()}`}>{label}</Link>)}</nav><button className="icon-button" onClick={onTheme} aria-label={`Switch to ${theme==='light'?'night beach':'daylight'} theme`} data-testid="button-theme">{theme==='light'?<SunIcon/>:<MoonIcon/>}</button></header>
 }
-function BottomNav({location}:{location:string}){const entries=[['⌂','Home','/'],['↗','Journey','/journey'],['✳','Stamps','/stamps'],['□','Prep','/prep']];return <nav className="bottom-nav" aria-label="Quick navigation">{entries.map(([glyph,label,path])=><Link href={path} className={location===path?'active':''} key={label} data-testid={`bottom-${label.toLowerCase()}`}><span aria-hidden="true">{glyph}</span>{label}</Link>)}</nav>}
+function BottomNav({location}:{location:string}){const entries=[['⌂','Home','/'],['↗','Journey','/journey'],['▤','Wallet','/wallet'],['□','Prep','/prep']];return <nav className="bottom-nav" aria-label="Quick navigation">{entries.map(([glyph,label,path])=><Link href={path} className={location===path?'active':''} key={label} data-testid={`bottom-${label.toLowerCase()}`}><span aria-hidden="true">{glyph}</span>{label}</Link>)}</nav>}
  function Home(){
  const {saved,setLocation,notify}=useGuide();const [,setClock]=useState(Date.now());useEffect(()=>{const timer=window.setInterval(()=>setClock(Date.now()),60000);return()=>window.clearInterval(timer)},[]);const countDown=Math.max(0,Math.ceil((new Date('2026-11-27T00:00:00').getTime()-Date.now())/86400000));
  const now=()=>{const today=new Date();const date=today.toDateString();const tripDates=['Fri Nov 27 2026','Sat Nov 28 2026','Sun Nov 29 2026','Mon Nov 30 2026'];const dayIndex=tripDates.indexOf(date);if(dayIndex<0){notify('Not a travel day yet — Day 1 is ready whenever you are.');setLocation('/days/1');return}const d=days[dayIndex];const mins=today.getHours()*60+today.getMinutes();const match=d.stops.find(s=>{const time=s.time.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);if(!time)return false;let hr=Number(time[1])%12;if(time[3].toUpperCase()==='PM')hr+=12;const start=hr*60+Number(time[2]);return mins>=start&&mins<start+90});const target=match?.id||d.stops[0].id;setLocation(`/days/${d.id}?stop=${target}`);window.setTimeout(()=>document.getElementById(target)?.scrollIntoView({behavior:'smooth',block:'center'}),350)};
