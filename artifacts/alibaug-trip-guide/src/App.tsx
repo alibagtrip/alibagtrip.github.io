@@ -18,6 +18,7 @@ import './resort-pin.css';
 import './card-images.css';
 import './wallet.css';
 import './dark-mode.css';
+import './theme-icon.css';
 
 type Saved={done:string[];checks:string[];theme:'light'|'dark';pin:string};
 const KEY='alibaug-guide-v1';
