@@ -1,0 +1,7 @@
+.topbar > a.icon-button {
+  margin-left: auto;
+}
+
+.topbar > a.icon-button + button.icon-button {
+  margin-left: -14px;
+}
