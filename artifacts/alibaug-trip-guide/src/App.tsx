@@ -21,6 +21,7 @@ import './spacing.css';
 import './hero-spacing.css';
 import './resort-pin.css';
 import './card-images.css';
+import './stamp-removal.css';
 import './wallet.css';
 import './dark-mode.css';
 import './theme-icon.css';
