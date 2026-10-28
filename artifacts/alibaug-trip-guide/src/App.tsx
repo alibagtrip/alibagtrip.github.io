@@ -31,7 +31,7 @@ type Saved={done:string[];checks:string[];theme:'light'|'dark';pin:string};
 const KEY='alibaug-guide-v1';
 type AppLinkProps={href:string;className?:string;children:React.ReactNode;style?:React.CSSProperties;'data-testid'?:string};
 function Link({href,className,children,style,...props}:AppLinkProps){const safeHref=href.startsWith('/days/')&&href.includes('#')?href.replace('#','?stop='):href;return <WouterLink to={safeHref} className={className} style={style} {...props}>{children}</WouterLink>}
-const THEME_MIGRATION_KEY='alibaug-cinematic-theme-v1';
+const THEME_MIGRATION_KEY='alibaug-cinematic-theme-v2';
 const safeRead=():Saved=>{const defaults:Saved={done:[],checks:[],theme:'dark',pin:''};try{const value=localStorage.getItem(KEY);const saved:Saved=value?{...defaults,...JSON.parse(value)}:defaults;if(localStorage.getItem(THEME_MIGRATION_KEY)!=='1'){saved.theme='dark';localStorage.setItem(THEME_MIGRATION_KEY,'1')}return saved}catch{return defaults}};
 function encode(q:string){return encodeURIComponent(q)}
 function placeFor(id:string){return places.find(p=>p.id===id)!}
