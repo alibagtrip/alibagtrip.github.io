@@ -652,7 +652,7 @@
   min-height: 60vh;
 }
 
-/* Fixed background: remains visible while the user scrolls. */
+/* Fixed background: stays visible while scrolling. */
 
 .dark .main.cinematic-page::before {
   content: "";
@@ -678,7 +678,7 @@
   opacity: 1;
 }
 
-/* Match each website page to its corresponding PowerPoint slide. */
+/* One PowerPoint slide per website page. */
 
 .dark .main.cinematic-page-home {
   --page-slide-image: url("/images/obsession/slide-1.jpg");
@@ -700,7 +700,7 @@
   --page-slide-image: url("/images/obsession/slide-5.jpg");
 }
 
-/* Keep foreground content readable without hiding the slide. */
+/* Let the slide remain visible behind the main homepage hero. */
 
 .dark .main.cinematic-page .hero {
   background: linear-gradient(
@@ -710,16 +710,145 @@
   );
 }
 
-.dark .main.cinematic-page .card,
-.dark .main.cinematic-page .day-card,
-.dark .main.cinematic-page .stop,
-.dark .main.cinematic-page .stamp-card,
-.dark .main.cinematic-page .jump-chip {
-  background: rgba(27, 23, 19, 0.48);
-  backdrop-filter: blur(3px);
+/* ============================================
+   FROSTED GLASS EFFECT — ALL FIVE PAGES
+   ============================================ */
+
+.dark .main.cinematic-page :is(
+  .card,
+  .day-card,
+  .stop,
+  .stamp-card,
+  .wallet-item,
+  .wallet-add,
+  .wallet-date,
+  .wallet-chip,
+  .wallet-predict,
+  .map-controls,
+  .map-panel,
+  .map-fallback,
+  .place-hero,
+  .day-banner,
+  .jump-chip,
+  .route-list > a,
+  .day-tab,
+  .subtab,
+  .notice
+) {
+  background: rgba(27, 23, 19, 0.46) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(125%);
+  backdrop-filter: blur(12px) saturate(125%);
+  border-color: rgba(217, 154, 74, 0.35);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  transition:
+    background 200ms ease,
+    border-color 200ms ease,
+    box-shadow 200ms ease;
 }
 
-/* Make the fixed image fill the visible screen on smaller devices too. */
+/* Slightly stronger glass on hover. */
+
+.dark .main.cinematic-page :is(
+  .card,
+  .day-card,
+  .stop,
+  .stamp-card,
+  .wallet-item,
+  .wallet-add,
+  .wallet-date,
+  .wallet-chip,
+  .wallet-predict,
+  .map-controls,
+  .map-panel,
+  .map-fallback,
+  .place-hero,
+  .day-banner,
+  .jump-chip,
+  .route-list > a
+):hover {
+  background: rgba(40, 31, 23, 0.56) !important;
+  border-color: rgba(217, 154, 74, 0.55);
+  box-shadow:
+    0 12px 36px rgba(0, 0, 0, 0.30),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* Preserve readable text and solid primary actions. */
+
+.dark .main.cinematic-page :is(
+  .card,
+  .day-card,
+  .stop,
+  .stamp-card,
+  .wallet-item,
+  .wallet-add,
+  .wallet-date,
+  .wallet-chip,
+  .wallet-predict,
+  .map-controls,
+  .map-panel,
+  .map-fallback,
+  .place-hero,
+  .day-banner
+) {
+  color: var(--ink);
+}
+
+.dark .main.cinematic-page .btn.primary,
+.dark .main.cinematic-page .day-tab.selected,
+.dark .main.cinematic-page .subtab.on {
+  color: #17110a !important;
+  background: #d99a4a !important;
+  border-color: #d99a4a !important;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.dark .main.cinematic-page .btn.soft {
+  background: rgba(27, 23, 19, 0.64);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+/* Keep stop thumbnails crisp. */
+
+.dark .main.cinematic-page .stop-image {
+  filter: saturate(0.85) contrast(1.04);
+}
+
+/* ============================================
+   STICKY FROSTED NAVIGATION
+   ============================================ */
+
+.dark .topbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  width: 100%;
+  background: rgba(16, 15, 13, 0.88);
+  -webkit-backdrop-filter: blur(16px) saturate(125%);
+  backdrop-filter: blur(16px) saturate(125%);
+  border-bottom: 1px solid rgba(217, 154, 74, 0.35);
+}
+
+.dark .topbar .nav-link {
+  color: #f3e9dc;
+}
+
+.dark .topbar .nav-link:hover,
+.dark .topbar .nav-link.active {
+  color: #f8e8d1;
+  background: rgba(217, 154, 74, 0.16);
+}
+
+.dark .topbar .icon-button {
+  position: relative;
+  z-index: 1;
+}
+
+/* Mobile support: keep the background fixed and reduce glass blur slightly. */
 
 @media (max-width: 720px) {
   .dark .main.cinematic-page::before {
@@ -730,5 +859,31 @@
     background-position: center center;
     background-size: cover;
     background-repeat: no-repeat;
+  }
+
+  .dark .main.cinematic-page :is(
+    .card,
+    .day-card,
+    .stop,
+    .stamp-card,
+    .wallet-item,
+    .wallet-add,
+    .wallet-date,
+    .wallet-chip,
+    .wallet-predict,
+    .map-controls,
+    .map-panel,
+    .map-fallback,
+    .place-hero,
+    .day-banner,
+    .jump-chip,
+    .route-list > a,
+    .day-tab,
+    .subtab,
+    .notice
+  ) {
+    background: rgba(27, 23, 19, 0.52) !important;
+    -webkit-backdrop-filter: blur(9px) saturate(120%);
+    backdrop-filter: blur(9px) saturate(120%);
   }
 }
