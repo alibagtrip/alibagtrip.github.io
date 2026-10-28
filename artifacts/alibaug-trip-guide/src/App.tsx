@@ -25,12 +25,14 @@ import './stamp-removal.css';
 import './wallet.css';
 import './dark-mode.css';
 import './theme-icon.css';
+import './cinematic-theme.css';
 
 type Saved={done:string[];checks:string[];theme:'light'|'dark';pin:string};
 const KEY='alibaug-guide-v1';
 type AppLinkProps={href:string;className?:string;children:React.ReactNode;style?:React.CSSProperties;'data-testid'?:string};
 function Link({href,className,children,style,...props}:AppLinkProps){const safeHref=href.startsWith('/days/')&&href.includes('#')?href.replace('#','?stop='):href;return <WouterLink to={safeHref} className={className} style={style} {...props}>{children}</WouterLink>}
-const safeRead=():Saved=>{try{const value=localStorage.getItem(KEY);return value?{done:[],checks:[],theme:'light',pin:'',...JSON.parse(value)}:{done:[],checks:[],theme:'light',pin:''}}catch{return{done:[],checks:[],theme:'light',pin:''}}};
+const THEME_MIGRATION_KEY='alibaug-cinematic-theme-v1';
+const safeRead=():Saved=>{const defaults:Saved={done:[],checks:[],theme:'dark',pin:''};try{const value=localStorage.getItem(KEY);const saved:Saved=value?{...defaults,...JSON.parse(value)}:defaults;if(localStorage.getItem(THEME_MIGRATION_KEY)!=='1'){saved.theme='dark';localStorage.setItem(THEME_MIGRATION_KEY,'1')}return saved}catch{return defaults}};
 function encode(q:string){return encodeURIComponent(q)}
 function placeFor(id:string){return places.find(p=>p.id===id)!}
 function mapsSearch(q:string){return`https://www.google.com/maps/search/?api=1&query=${encode(q)}`}
@@ -38,14 +40,14 @@ function imageSearch(q:string){return`https://www.google.com/search?tbm=isch&q=$
 function directions(destination:string,origin?:string,mode='two-wheeler'){const travel=/Thane CBS|CSMT|Chhatrapati|BKC|Santacruz|Gateway of India|Mandwa Jetty/i.test(`${destination} ${origin||''}`)?'transit':mode;return`https://www.google.com/maps/dir/?api=1&destination=${encode(destination)}${origin?`&origin=${encode(origin)}`:''}&travelmode=${travel}`}
 function wholeDay(dayId:number){const stops=days.find(d=>d.id===dayId)?.stops||[];const unique=stops.map(s=>placeFor(s.placeId).query).filter((v,i,a)=>a.indexOf(v)===i);if(unique.length<2)return mapsSearch(unique[0]||'Alibaug');const origin=encode(unique[0]);const destination=encode(unique[unique.length-1]);const waypoints=unique.slice(1,-1).map(encode).join('%7C');return`https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}${waypoints?`&waypoints=${waypoints}`:''}&travelmode=${dayId===1||dayId===4?'transit':'two-wheeler'}`}
 function GuideApp(){
- const [saved,setSaved]=useState<Saved>(safeRead);const [location,setLocation]=useLocation();const [toast,setToast]=useState('');const [stampRipple,setStampRipple]=useState(false);
+ const [saved,setSaved]=useState<Saved>(safeRead);const [location,setLocation]=useLocation();const pageTheme=location==='/'||location.startsWith('/?')?'home':location.startsWith('/journey')||location.startsWith('/days/')?'journey':location.startsWith('/map')||location.startsWith('/place/')?'map':location.startsWith('/wallet')?'wallet':location.startsWith('/prep')?'prep':'home';const [toast,setToast]=useState('');const [stampRipple,setStampRipple]=useState(false);
  useEffect(()=>{try{localStorage.setItem(KEY,JSON.stringify(saved))}catch{};document.documentElement.classList.toggle('dark',saved.theme==='dark')},[saved]);
  const notify=(message:string)=>{setToast(message);window.setTimeout(()=>setToast(''),2600)};
  const toggleDone=(id:string)=>{const already=saved.done.includes(id);setSaved(s=>({...s,done:already?s.done.filter(x=>x!==id):[...s.done,id]}));if(!already){setStampRipple(true);window.setTimeout(()=>setStampRipple(false),850);notify('Stamp collected — this little moment is yours.')}else notify('Stop marked not done.')};
  const toggleCheck=(id:string)=>setSaved(s=>({...s,checks:s.checks.includes(id)?s.checks.filter(v=>v!==id):[...s.checks,id]}));
  const toggleTheme=()=>setSaved(s=>({...s,theme:s.theme==='light'?'dark':'light'}));
  const ctx={saved,setSaved,location,setLocation,notify,toggleDone,toggleCheck,toggleTheme};
- return <AppContext.Provider value={ctx}><div className="shell"><Header theme={saved.theme} onTheme={toggleTheme} location={location}/><main className="main"><Switch>
+ return <AppContext.Provider value={ctx}><div className="shell"><Header theme={saved.theme} onTheme={toggleTheme} location={location}/><main className={`main cinematic-page cinematic-page-${pageTheme}`} data-page={pageTheme}><Switch>
    <Route path="/" component={Home}/>
    <Route path="/days/:dayId">{params=><Journey initialDayId={Number(params.dayId)}/>}</Route>
    <Route path="/place/:placeId">{params=><PlacePage placeId={params.placeId}/>}</Route>
