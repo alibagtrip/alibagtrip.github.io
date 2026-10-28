@@ -652,31 +652,30 @@
   min-height: 60vh;
 }
 
-/* Updated rule: image is limited to the top portion of the page. */
+/* Fixed background: remains visible while the user scrolls. */
 
 .dark .main.cinematic-page::before {
   content: "";
-  position: absolute;
+  position: fixed;
   z-index: -1;
   pointer-events: none;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: min(90vh, 720px);
+  inset: 0;
+  width: 100%;
+  height: 100vh;
 
   background-image:
     linear-gradient(
       180deg,
-      rgba(12, 10, 8, 0.48) 0%,
-      rgba(12, 10, 8, 0.78) 55%,
-      #100f0d 100%
+      rgba(12, 10, 8, 0.18) 0%,
+      rgba(12, 10, 8, 0.28) 55%,
+      rgba(16, 15, 13, 0.42) 100%
     ),
     var(--page-slide-image);
 
-  background-position: center top;
+  background-position: center center;
   background-size: cover;
   background-repeat: no-repeat;
-  opacity: 0.9;
+  opacity: 1;
 }
 
 /* Match each website page to its corresponding PowerPoint slide. */
@@ -701,13 +700,13 @@
   --page-slide-image: url("/images/obsession/slide-5.jpg");
 }
 
-/* Keep foreground content readable over the background image. */
+/* Keep foreground content readable without hiding the slide. */
 
 .dark .main.cinematic-page .hero {
   background: linear-gradient(
     110deg,
-    rgba(37, 28, 20, 0.91),
-    rgba(16, 15, 13, 0.78)
+    rgba(37, 28, 20, 0.72),
+    rgba(16, 15, 13, 0.56)
   );
 }
 
@@ -716,16 +715,20 @@
 .dark .main.cinematic-page .stop,
 .dark .main.cinematic-page .stamp-card,
 .dark .main.cinematic-page .jump-chip {
-  background: rgba(27, 23, 19, 0.88);
+  background: rgba(27, 23, 19, 0.48);
   backdrop-filter: blur(3px);
 }
 
+/* Make the fixed image fill the visible screen on smaller devices too. */
+
 @media (max-width: 720px) {
   .dark .main.cinematic-page::before {
-    left: -16px;
-    right: -16px;
-    height: min(70vh, 560px);
-    background-position: center top;
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100vh;
+    background-position: center center;
     background-size: cover;
+    background-repeat: no-repeat;
   }
 }
