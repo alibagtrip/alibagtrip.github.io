@@ -834,7 +834,7 @@
   background: rgba(16, 15, 13, 0.45);
   -webkit-backdrop-filter: blur(16px) saturate(125%);
   backdrop-filter: blur(16px) saturate(125%);
-  border-bottom: 0;
+  border-bottom: 1px solid rgba(217, 154, 74, 0.22);
   box-shadow: none;
 }
 
