@@ -5,22 +5,3 @@
 .topbar > a.icon-button + button.icon-button {
   margin-left: -14px;
 }
-
-.topbar {
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  width: 100vw;
-  margin-left: calc(50% - 50vw);
-  padding-inline: max(24px, calc((100vw - 1120px) / 2 + 24px));
-  background: color-mix(in srgb, var(--cream) 76%, transparent);
-  -webkit-backdrop-filter: blur(14px) saturate(150%);
-  backdrop-filter: blur(14px) saturate(150%);
-  border-bottom-color: color-mix(in srgb, var(--line) 70%, transparent);
-}
-
-@media (max-width: 720px) {
-  .topbar {
-    padding-inline: 16px;
-  }
-}
