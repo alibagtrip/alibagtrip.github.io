@@ -28,12 +28,12 @@ import './dark-mode.css';
 import './theme-icon.css';
 import './cinematic-theme.css';
 
-type Saved={done:string[];checks:string[];theme:'light'|'dark';pin:string};
+type Saved={done:string[];checks:string[];theme:'dark';pin:string};
 const KEY='alibaug-guide-v1';
 type AppLinkProps={href:string;className?:string;children:React.ReactNode;style?:React.CSSProperties;'data-testid'?:string};
 function Link({href,className,children,style,...props}:AppLinkProps){const safeHref=href.startsWith('/days/')&&href.includes('#')?href.replace('#','?stop='):href;return <WouterLink to={safeHref} className={className} style={style} {...props}>{children}</WouterLink>}
 const THEME_MIGRATION_KEY='alibaug-cinematic-theme-v2';
-const safeRead=():Saved=>{const defaults:Saved={done:[],checks:[],theme:'dark',pin:''};try{const value=localStorage.getItem(KEY);const saved:Saved=value?{...defaults,...JSON.parse(value)}:defaults;if(localStorage.getItem(THEME_MIGRATION_KEY)!=='1'){saved.theme='dark';localStorage.setItem(THEME_MIGRATION_KEY,'1')}return saved}catch{return defaults}};
+const safeRead=():Saved=>{const defaults:Saved={done:[],checks:[],theme:'dark',pin:''};try{const value=localStorage.getItem(KEY);return value?{...defaults,...JSON.parse(value),theme:'dark'}:defaults}catch{return defaults}};
 function encode(q:string){return encodeURIComponent(q)}
 function placeFor(id:string){return places.find(p=>p.id===id)!}
 function mapsSearch(q:string){return`https://www.google.com/maps/search/?api=1&query=${encode(q)}`}
@@ -42,13 +42,13 @@ function directions(destination:string,origin?:string,mode='two-wheeler'){const 
 function wholeDay(dayId:number){const stops=days.find(d=>d.id===dayId)?.stops||[];const unique=stops.map(s=>placeFor(s.placeId).query).filter((v,i,a)=>a.indexOf(v)===i);if(unique.length<2)return mapsSearch(unique[0]||'Alibaug');const origin=encode(unique[0]);const destination=encode(unique[unique.length-1]);const waypoints=unique.slice(1,-1).map(encode).join('%7C');return`https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}${waypoints?`&waypoints=${waypoints}`:''}&travelmode=${dayId===1||dayId===4?'transit':'two-wheeler'}`}
 function GuideApp(){
  const [saved,setSaved]=useState<Saved>(safeRead);const [location,setLocation]=useLocation();const pageTheme=location==='/'||location.startsWith('/?')?'home':location.startsWith('/journey')||location.startsWith('/days/')?'journey':location.startsWith('/map')||location.startsWith('/place/')?'map':location.startsWith('/wallet')?'wallet':location.startsWith('/prep')?'prep':'home';const [toast,setToast]=useState('');const [stampRipple,setStampRipple]=useState(false);
- useEffect(()=>{try{localStorage.setItem(KEY,JSON.stringify(saved))}catch{};document.documentElement.classList.toggle('dark',saved.theme==='dark')},[saved]);
+ useEffect(()=>{try{localStorage.setItem(KEY,JSON.stringify(saved))}catch{};document.documentElement.classList.add('dark')},[saved]);
  const notify=(message:string)=>{setToast(message);window.setTimeout(()=>setToast(''),2600)};
  const toggleDone=(id:string)=>{const already=saved.done.includes(id);setSaved(s=>({...s,done:already?s.done.filter(x=>x!==id):[...s.done,id]}));if(!already){setStampRipple(true);window.setTimeout(()=>setStampRipple(false),850);notify('Stamp collected — this little moment is yours.')}else notify('Stop marked not done.')};
  const toggleCheck=(id:string)=>setSaved(s=>({...s,checks:s.checks.includes(id)?s.checks.filter(v=>v!==id):[...s.checks,id]}));
  const toggleTheme=()=>setSaved(s=>({...s,theme:s.theme==='light'?'dark':'light'}));
- const ctx={saved,setSaved,location,setLocation,notify,toggleDone,toggleCheck,toggleTheme};
- return <AppContext.Provider value={ctx}><div className="shell"><Header theme={saved.theme} onTheme={toggleTheme} location={location}/><main className={`main cinematic-page cinematic-page-${pageTheme}`} data-page={pageTheme}><Switch>
+ const ctx={saved,setSaved,location,setLocation,notify,toggleDone,toggleCheck};
+ return <AppContext.Provider value={ctx}><div className="shell"><Header location={location}/><main className={`main cinematic-page cinematic-page-${pageTheme}`} data-page={pageTheme}><Switch>
    <Route path="/" component={Home}/>
    <Route path="/days/:dayId">{params=><Journey initialDayId={Number(params.dayId)}/>}</Route>
    <Route path="/place/:placeId">{params=><PlacePage placeId={params.placeId}/>}</Route>
@@ -60,13 +60,13 @@ function GuideApp(){
  </Switch></main><SandFooter/><BottomNav location={location}/></div>{stampRipple&&<div className="ripple" aria-hidden="true"/>}{toast&&<div className="toast" role="status" data-testid="status-toast">{toast}</div>}</AppContext.Provider>;
 }
  function App(){return <Router hook={useHashLocation}><GuideApp/></Router>}
- type Context={saved:Saved;setSaved:React.Dispatch<React.SetStateAction<Saved>>;location:string;setLocation:(path:string)=>void;notify:(m:string)=>void;toggleDone:(id:string)=>void;toggleCheck:(id:string)=>void;toggleTheme:()=>void};
+ type Context={saved:Saved;setSaved:React.Dispatch<React.SetStateAction<Saved>>;location:string;setLocation:(path:string)=>void;notify:(m:string)=>void;toggleDone:(id:string)=>void;toggleCheck:(id:string)=>void};
 const AppContext=React.createContext<Context|null>(null);
 const LazyJourneyScene=lazy(()=>import('@/components/JourneyScene'));
 function useGuide(){const c=React.useContext(AppContext);if(!c)throw new Error('Guide context missing');return c}
-function Header({theme,onTheme,location}:{theme:string;onTheme:()=>void;location:string}){
+function Header({location}:{location:string}){
  const links=[['Home','/'],['Journey','/journey'],['Map','/map'],['Wallet','/wallet'],['Prep','/prep']];
- return <header className="topbar"><Link href="/" className="brand" data-testid="link-home"><span className="brand-mark" aria-hidden="true">A</span><span>Alibag <span style={{color:'var(--coral)'}}>Pocket Guide</span></span></Link><nav className="nav-links" aria-label="Main navigation">{links.map(([label,path])=><Link key={label} href={path} className={`nav-link ${location===path?'active':''}`} data-testid={`nav-${label.toLowerCase()}`}>{label}</Link>)}</nav><Link href="/map" className="icon-button" aria-label="Open map" data-testid="header-map"><MapIcon size={19} strokeWidth={1.8}/></Link><button className="icon-button" onClick={onTheme} aria-label={`Switch to ${theme==='light'?'night beach':'daylight'} theme`} data-testid="button-theme">{theme==='light'?<SunIcon/>:<MoonIcon/>}</button></header>
+ return <header className="topbar"><Link href="/" className="brand" data-testid="link-home"><span className="brand-mark" aria-hidden="true">A</span><span>Alibag <span style={{color:'var(--coral)'}}>Pocket Guide</span></span></Link><nav className="nav-links" aria-label="Main navigation">{links.map(([label,path])=><Link key={label} href={path} className={`nav-link ${location===path?'active':''}`} data-testid={`nav-${label.toLowerCase()}`}>{label}</Link>)}</nav><Link href="/map" className="icon-button" aria-label="Open map" data-testid="header-map"><MapIcon size={19} strokeWidth={1.8}/></Link></header>
 }
 function BottomNav({location}:{location:string}){const entries=[{label:'Home',path:'/',icon:HomeIcon},{label:'Journey',path:'/journey',icon:MapIcon},{label:'Wallet',path:'/wallet',icon:WalletCards},{label:'Prep',path:'/prep',icon:ListChecks}];return <nav className="bottom-nav" aria-label="Quick navigation">{entries.map(({label,path,icon:Icon})=><Link href={path} className={location===path?'active':''} key={label} data-testid={`bottom-${label.toLowerCase()}`}><Icon size={21} strokeWidth={1.8} aria-hidden="true"/>{label}</Link>)}</nav>}
 function Home(){
