@@ -13,6 +13,7 @@ import { characterAssets } from '@/data/assets';
 import Wallet from '@/components/Wallet';
 import NotFound from '@/pages/not-found';
 import './index.css';
+import './header-fullbleed.css';
 import './map-page.css';
 import './header-actions.css';
 import './journey-card.css';
