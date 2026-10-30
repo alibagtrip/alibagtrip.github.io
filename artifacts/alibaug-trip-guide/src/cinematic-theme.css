@@ -826,11 +826,16 @@
   position: sticky;
   top: 0;
   z-index: 1000;
-  width: 100%;
-  background: rgba(16, 15, 13, 0.88);
+  width: 100vw;
+  max-width: none;
+  margin-left: calc(50% - 50vw);
+  padding-right: max(24px, calc((100vw - 1180px) / 2 + 24px));
+  padding-left: max(24px, calc((100vw - 1180px) / 2 + 24px));
+  background: rgba(16, 15, 13, 0.45);
   -webkit-backdrop-filter: blur(16px) saturate(125%);
   backdrop-filter: blur(16px) saturate(125%);
-  border-bottom: 1px solid rgba(217, 154, 74, 0.35);
+  border-bottom: 0;
+  box-shadow: none;
 }
 
 .dark .topbar .nav-link {
