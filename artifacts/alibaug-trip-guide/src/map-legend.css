@@ -1,0 +1,39 @@
+.map-marker-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  align-items: center;
+  padding: 10px 14px;
+  color: var(--muted);
+  font-size: 12px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+
+.map-marker-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.map-marker-legend i {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  border: 2px solid #fffaf0;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px #263b3d66;
+}
+
+.legend-stop { background: #f2546f; }
+.legend-eatery { background: #2f7fa6; }
+.legend-user { background: #86ad8b; }
+.legend-resort { background: #d99a4a; }
+
+@media (max-width: 420px) {
+  .map-marker-legend {
+    gap: 8px 12px;
+    font-size: 11px;
+  }
+}
