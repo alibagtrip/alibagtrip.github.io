@@ -1,4 +1,21 @@
+.prep-groups .checkline {
+  display: flex;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.prep-groups .checkline > input[type="checkbox"] {
+  flex-shrink: 0;
+}
+
 .prep-groups .checkline > input:not([type="checkbox"]) {
+  min-width: 0;
+  flex: 1;
   white-space: normal;
   overflow-wrap: anywhere;
+}
+
+.prep-groups .checkline > button {
+  flex-shrink: 0;
+  align-self: flex-start;
 }
