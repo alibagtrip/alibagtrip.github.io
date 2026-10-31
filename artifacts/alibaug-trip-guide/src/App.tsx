@@ -4,6 +4,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Route, Switch, Link as WouterLink, Router, useLocation } from 'wouter';
 import { useHashLocation } from 'wouter/use-hash-location';
+import './prep-wrap.css';
 import { Home as HomeIcon, Map as MapIcon, WalletCards, ListChecks } from 'lucide-react';
 import { days, type Stop } from '@/data/itinerary';
 import { dayTwoLunchStops } from '@/data/lunch-stops';

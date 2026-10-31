@@ -1,0 +1,4 @@
+.prep-groups .checkline > input:not([type="checkbox"]) {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
