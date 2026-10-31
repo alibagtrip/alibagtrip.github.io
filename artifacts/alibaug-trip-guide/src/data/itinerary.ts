@@ -50,3 +50,43 @@ export const days:TripDay[] = [
 {id:'d4-dinner',time:'5:30–6:30 PM',title:'Order bus dinner · by about 6 PM',placeId:'bkc-santacruz',note:'Order something that travels well and pick it up near the boarding point or a reachable delivery spot. Confirm before ordering.',food:'Bus dinner · something that travels well; order by about 6 PM.',tips:['Keep ticket, ID, power bank, water and light blanket within reach.'],cutoff:'Order by about 6:00 PM.',category:'Food'},
 {id:'d4-bus-home',time:'By 7:00 PM · bus around 8 PM',title:'Reach boarding point together',placeId:'bkc-santacruz',note:'Be at his boarding point with dinner in hand by 7:00 PM. Overnight bus to Nagpur after 8 PM.',tips:['Share bus details and live location with someone at home. Keep charger and light blanket close.'],category:'Travel'}]}
 ];
+
+const stopTitleOverrides: Record<string, string> = {
+  'd0-book': 'Book the Nagpur–Mumbai bus',
+  'd0-bus': 'Board the Nagpur–Mumbai overnight bus',
+  'd1-train': 'Train from Virar to Thane via Dadar',
+  'd1-meet': 'Meet at Thane CBS',
+  'd1-cutoff': 'Choose the next bus with two seats',
+  'd1-arrival': 'Arrive in Alibaug and ride to Varsoli',
+  'd1-lunch': 'Lunch at Modern Aaji or Mejwani: fish thali and solkadhi',
+  'd1-checkin': 'Check in and rest',
+  'd1-kihim': 'Kihim Beach sunset',
+  'd1-return': 'Return to the resort by 7 PM',
+  'd1-dinner': 'Dinner at the resort',
+  'd2-kolaba': 'Kolaba Fort · tide permitting',
+  'd2-beach': 'Walk at Alibaug Beach',
+  'd2-breakfast': 'Breakfast in Alibaug',
+  'd2-lunch': 'Lunch at Koli Bites or Coco Palm: seafood or chicken thali',
+  'd2-korlai': 'Korlai Fort · optional',
+  'd2-return': 'Return to Varsoli',
+  'd2-sunset': 'Sunset at Varsoli or a nearby beach',
+  'd2-bookings': 'Book the return bus and ferry',
+  'd3-chai': 'Get ready for the ride',
+  'd3-breakfast': 'Breakfast near Revdanda or Korlai',
+  'd3-jetty': 'Rajapuri Jetty · confirm boat timings',
+  'd3-fort': 'Cross to Janjira Fort and return',
+  'd3-lunch': 'Lunch at Nandaai, Hotel Janjira, or Shreyash: seafood or chicken thali',
+  'd3-return': 'Leave Murud for Varsoli',
+  'd3-home': 'Return to the resort and rest',
+  'd4-checkout': 'Check out and return the scooter',
+  'd4-bus': 'Bus to Mandwa Jetty',
+  'd4-ferry': 'Catamaran from Mandwa to Gateway of India',
+  'd4-gateway': 'Arrive at Gateway and walk to the BEST stop',
+  'd4-metro': 'Take the Aqua Line to BKC or Santacruz',
+  'd4-dinner': 'Order dinner for the bus',
+};
+
+days.forEach(day => day.stops.forEach(stop => {
+  const title = stopTitleOverrides[stop.id];
+  if (title) stop.title = title;
+}));
