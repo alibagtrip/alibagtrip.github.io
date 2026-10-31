@@ -4,18 +4,25 @@
   min-width: 0;
 }
 
-.prep-groups .checkline > input[type="checkbox"] {
+.prep-groups .checkline-checkbox {
   flex-shrink: 0;
 }
 
-.prep-groups .checkline > input:not([type="checkbox"]) {
-  min-width: 0;
+.prep-groups .checkline-text {
   flex: 1;
-  white-space: normal;
+  min-width: 0;
+  white-space: pre-wrap;
   overflow-wrap: anywhere;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  padding: 0;
+  resize: none;
+  line-height: inherit;
 }
 
-.prep-groups .checkline > button {
+.prep-groups .checkline-delete {
   flex-shrink: 0;
   align-self: flex-start;
 }
