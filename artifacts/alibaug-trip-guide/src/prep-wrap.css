@@ -7,7 +7,7 @@
 .prep-groups .checkline-checkbox {
   align-self: flex-start;
   flex-shrink: 0;
-  margin-top: 0.2em;
+  margin-top: 3px;
 }
 
 .prep-groups .checkline-text {
