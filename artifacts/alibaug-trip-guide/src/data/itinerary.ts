@@ -1,5 +1,28 @@
-export type Stop = { id:string; time:string; title:string; placeId:string; note:string; tips:string[]; food?:string; foodLocations?:{name:string;coordinates:string;url:string}[]; optional?:boolean; cutoff?:string; category:string; bookingUrl?:string; ferryBookingUrl?:string; };
-export type TripDay = { id:number; date:string; title:string; color:string; summary:string; stops:Stop[] };
+export type Stop = {
+  id: string;
+  time: string;
+  title: string;
+  placeId: string;
+  note: string;
+  tips: string[];
+  food?: string;
+  foodLocations?: { name: string; coordinates: string; url: string }[];
+  optional?: boolean;
+  cutoff?: string;
+  category: string;
+  bookingUrl?: string;
+  ferryBookingUrl?: string;
+  imageDataUrl?: string;
+};
+
+export type TripDay = {
+  id: number;
+  date: string;
+  title: string;
+  color: string;
+  summary: string;
+  stops: Stop[];
+};
 export const days:TripDay[] = [
 {id:0,date:'Thu 26 Nov',title:'Nagpur to Mumbai',color:'#4e8295',summary:'An overnight journey to meet up in Mumbai',stops:[
 {id:'d0-book',time:'Before departure',title:'Book the Nagpur–Mumbai bus',placeId:'nagpur',note:'Search and book his overnight bus ticket from Nagpur to Mumbai.',tips:['Choose a bus that boards in Nagpur around 8 PM.','Check the exact pickup point and departure time before booking.'],category:'Booking',bookingUrl:'https://www.makemytrip.com/bus-tickets/search?from=Nagpur%2C+Maharashtra&to=Mumbai%2C+Maharashtra&fromCode=MMTCC1619&toCode=MMTCC1599&departureDate=26-11-2026&itineraryId=7beb65fd-6236-44fd-8d24-c7e9fc186382'},
