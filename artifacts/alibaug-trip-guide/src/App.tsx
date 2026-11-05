@@ -32,6 +32,9 @@ import './theme-icon.css';
 import './cinematic-theme.css';
 
 type Saved={done:string[];checks:string[];theme:'dark'|'light';pin:string};
+type FoodLocation = NonNullable<Stop['foodLocations']>[number] & { websiteUrl?: string };
+type EditableStop = Stop & { websiteUrl?: string; foodLocations?: FoodLocation[] };
+const externalUrl=(value?:string)=>{const url=(value||'').trim();return /^https?:\/\//i.test(url)?url:''};
 const KEY='alibaug-guide-v1';
 type AppLinkProps={href:string;className?:string;children:React.ReactNode;style?:React.CSSProperties;'data-testid'?:string};
 function Link({href,className,children,style,...props}:AppLinkProps){const safeHref=href.startsWith('/days/')&&href.includes('#')?href.replace('#','?stop='):href;return <WouterLink to={safeHref} className={className} style={style} {...props}>{children}</WouterLink>}
@@ -44,36 +47,22 @@ function imageSearch(q:string){return`https://www.google.com/search?tbm=isch&q=$
 function directions(destination:string,origin?:string,mode='two-wheeler'){const travel=/Thane CBS|CSMT|Chhatrapati|BKC|Santacruz|Gateway of India|Mandwa Jetty/i.test(`${destination} ${origin||''}`)?'transit':mode;return`https://www.google.com/maps/dir/?api=1&destination=${encode(destination)}${origin?`&origin=${encode(origin)}`:''}&travelmode=${travel}`}
 function wholeDay(dayId: number, tripDays: TripDay[] = days) {
   const stops = tripDays.find(d => d.id === dayId)?.stops || [];
-  const unique = stops
-    .map(s => places.find(p => p.id === s.placeId)?.query)
-    .filter((v): v is string => Boolean(v))
-    .filter((v, i, a) => a.indexOf(v) === i);
-
+  const unique = stops.map(s => places.find(p => p.id === s.placeId)?.query).filter((v): v is string => Boolean(v)).filter((v, i, a) => a.indexOf(v) === i);
   if (unique.length < 2) return mapsSearch(unique[0] || 'Alibaug');
-
-  const origin = encode(unique[0]);
-  const destination = encode(unique[unique.length - 1]);
-  const waypoints = unique.slice(1, -1).map(encode).join('%7C');
-
+  const origin = encode(unique[0]); const destination = encode(unique[unique.length - 1]); const waypoints = unique.slice(1, -1).map(encode).join('%7C');
   return `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}${waypoints ? `&waypoints=${waypoints}` : ''}&travelmode=${dayId === 1 || dayId === 4 ? 'transit' : 'two-wheeler'}`;
 }
 
 function GuideApp(){
  const [saved,setSaved]=useState<Saved>(safeRead);const [tripDays,setTripDays]=useState<TripDay[]>(days);const [itineraryReady,setItineraryReady]=useState(false);const [location,setLocation]=useLocation();const pageTheme=location==='/'||location.startsWith('/?')?'home':location.startsWith('/journey')||location.startsWith('/days/')?'journey':location.startsWith('/map')||location.startsWith('/place/')?'map':location.startsWith('/wallet')?'wallet':location.startsWith('/prep')?'prep':'home';const [toast,setToast]=useState('');const [stampRipple,setStampRipple]=useState(false);
-
  useEffect(()=>{try{localStorage.setItem(KEY,JSON.stringify(saved))}catch{};document.documentElement.classList.add('dark')},[saved]);
-
  useEffect(()=>{let active=true;loadItinerary().then(stored=>{if(!active)return;if(stored)setTripDays(stored);setItineraryReady(true)}).catch(()=>{if(active)setItineraryReady(true)});return()=>{active=false}},[]);
-
  useEffect(()=>{if(!itineraryReady)return;saveItinerary(tripDays).catch(error=>{console.error('Could not save itinerary:',error)})},[tripDays,itineraryReady]);
-
  const notify=(message:string)=>{setToast(message);window.setTimeout(()=>setToast(''),2600)};
  const toggleDone=(id:string)=>{const already=saved.done.includes(id);setSaved(s=>({...s,done:already?s.done.filter(x=>x!==id):[...s.done,id]}));if(!already){setStampRipple(true);window.setTimeout(()=>setStampRipple(false),850);notify('Stamp collected — this little moment is yours.')}else notify('Stop marked not done.')};
  const toggleCheck=(id:string)=>setSaved(s=>({...s,checks:s.checks.includes(id)?s.checks.filter(v=>v!==id):[...s.checks,id]}));
  const toggleTheme=()=>setSaved(s=>({...s,theme:s.theme==='light'?'dark':'light'}));
-
  const ctx={saved,setSaved,location,setLocation,notify,toggleDone,toggleCheck,tripDays,setTripDays};
-
  return <AppContext.Provider value={ctx}><div className="shell"><Header location={location}/><main className={`main cinematic-page cinematic-page-${pageTheme}`} data-page={pageTheme}><Switch>
    <Route path="/" component={Home}/>
    <Route path="/days/:dayId">{params=><Journey initialDayId={Number(params.dayId)}/>}</Route>
@@ -85,9 +74,7 @@ function GuideApp(){
    <Route component={NotFound}/>
  </Switch></main><SandFooter/><BottomNav location={location}/></div>{stampRipple&&<div className="ripple" aria-hidden="true"/>}{toast&&<div className="toast" role="status" data-testid="status-toast">{toast}</div>}</AppContext.Provider>;
 }
-
 function App(){return <Router hook={useHashLocation}><GuideApp/></Router>}
-
 type Context={saved:Saved;setSaved:React.Dispatch<React.SetStateAction<Saved>>;location:string;setLocation:(path:string)=>void;notify:(m:string)=>void;toggleDone:(id:string)=>void;toggleCheck:(id:string)=>void;tripDays:TripDay[];setTripDays:React.Dispatch<React.SetStateAction<TripDay[]>>};
 const AppContext=React.createContext<Context|null>(null);
 const LazyJourneyScene=lazy(()=>import('@/components/JourneyScene'));
@@ -97,7 +84,6 @@ function Header({location}:{location:string}){
  const links=[['Home','/'],['Journey','/journey'],['Map','/map'],['Wallet','/wallet'],['Prep','/prep']];
  return <header className="topbar"><Link href="/" className="brand" data-testid="link-home"><span className="brand-mark" aria-hidden="true">A</span><span>Alibag <span style={{color:'var(--coral)'}}>Pocket Guide</span></span></Link><nav className="nav-links" aria-label="Main navigation">{links.map(([label,path])=><Link key={label} href={path} className={`nav-link ${location===path?'active':''}`} data-testid={`nav-${label.toLowerCase()}`}>{label}</Link>)}</nav><Link href="/map" className="icon-button" aria-label="Open map" data-testid="header-map"><MapIcon size={19} strokeWidth={1.8}/></Link></header>
 }
-
 function BottomNav({location}:{location:string}){const entries=[{label:'Home',path:'/',icon:HomeIcon},{label:'Journey',path:'/journey',icon:MapIcon},{label:'Wallet',path:'/wallet',icon:WalletCards},{label:'Prep',path:'/prep',icon:ListChecks}];return <nav className="bottom-nav" aria-label="Quick navigation">{entries.map(({label,path,icon:Icon})=><Link href={path} className={location===path?'active':''} key={label} data-testid={`bottom-${label.toLowerCase()}`}><Icon size={21} strokeWidth={1.8} aria-hidden="true"/>{label}</Link>)}</nav>}
 
 function Home(){
@@ -111,891 +97,117 @@ function Home(){
 }
 
 function DayPage({ dayId }: { dayId: number }) {
-  const { saved, tripDays, setTripDays, notify } = useGuide();
-  const day = tripDays.find(d => d.id === dayId) || tripDays[0];
-  const [editing, setEditing] = useState(false);
-  const [draggedId, setDraggedId] = useState<string | null>(null);
-
+  const { saved, tripDays, setTripDays, notify } = useGuide(); const day = tripDays.find(d => d.id === dayId) || tripDays[0]; const [editing, setEditing] = useState(false); const [draggedId, setDraggedId] = useState<string | null>(null);
   if (!day) return <p>No itinerary available.</p>;
-
   const done = day.stops.filter(s => saved.done.includes(s.id)).length;
-
-  const updateStop = (stopId: string, update: Partial<Stop>) => {
-    setTripDays(current =>
-      current.map(d =>
-        d.id === day.id
-          ? {
-              ...d,
-              stops: d.stops.map(s =>
-                s.id === stopId ? { ...s, ...update } : s
-              )
-            }
-          : d
-      )
-    );
-  };
-
-  const addStop = () => {
-    const newStop: Stop = {
-      id: crypto.randomUUID(),
-      time: 'New time',
-      title: 'New activity',
-      placeId: 'alibaug',
-      note: 'Add your description here.',
-      tips: [],
-      category: 'Activity'
-    };
-
-    setTripDays(current =>
-      current.map(d =>
-        d.id === day.id
-          ? { ...d, stops: [...d.stops, newStop] }
-          : d
-      )
-    );
-
-    notify('New itinerary card added.');
-  };
-
-  const deleteStop = (stopId: string) => {
-    if (!window.confirm('Delete this itinerary card?')) return;
-
-    setTripDays(current =>
-      current.map(d =>
-        d.id === day.id
-          ? { ...d, stops: d.stops.filter(s => s.id !== stopId) }
-          : d
-      )
-    );
-
-    notify('Itinerary card deleted.');
-  };
-
-  const moveStop = (fromId: string, toId: string) => {
-    if (fromId === toId) return;
-
-    setTripDays(current =>
-      current.map(d => {
-        if (d.id !== day.id) return d;
-
-        const stops = [...d.stops];
-        const fromIndex = stops.findIndex(s => s.id === fromId);
-        const toIndex = stops.findIndex(s => s.id === toId);
-
-        if (fromIndex < 0 || toIndex < 0) return d;
-
-        const [moved] = stops.splice(fromIndex, 1);
-        stops.splice(toIndex, 0, moved);
-
-        return { ...d, stops };
-      })
-    );
-  };
-
-  return (
-    <>
-      <div className="eyebrow">
-        Day {day.id} · {day.date}
-      </div>
-
-      <div className="day-tabs">
-        {tripDays.map(d => (
-          <Link
-            className={`day-tab ${d.id === day.id ? 'selected' : ''}`}
-            style={d.id === day.id ? { background: d.color } : undefined}
-            href={`/days/${d.id}`}
-            key={d.id}
-          >
-            Day {d.id}
-          </Link>
-        ))}
-      </div>
-
-      <section className="day-banner" style={{ background: day.color }}>
-        <div
-          className="eyebrow"
-          style={{ color: 'rgba(255,255,255,.82)' }}
-        >
-          {day.date} · coastal field notes
-        </div>
-
-        {editing ? (
-          <input
-            value={day.title}
-            onChange={e => setTripDays(current =>
-              current.map(d =>
-                d.id === day.id ? { ...d, title: e.target.value } : d
-              )
-            )}
-            style={{
-              width: '100%',
-              maxWidth: '100%',
-              boxSizing: 'border-box',
-              fontSize: 'clamp(24px,5vw,45px)',
-              fontWeight: 800,
-              padding: 8,
-              borderRadius: 10
-            }}
-          />
-        ) : (
-          <h1 style={{ fontSize: 'clamp(30px,6vw,55px)', marginTop: 8 }}>
-            {day.title}
-          </h1>
-        )}
-
-        {editing ? (
-          <textarea
-            value={day.summary}
-            onChange={e => setTripDays(current =>
-              current.map(d =>
-                d.id === day.id ? { ...d, summary: e.target.value } : d
-              )
-            )}
-            style={{
-              width: '100%',
-              boxSizing: 'border-box',
-              minHeight: 65,
-              padding: 10,
-              borderRadius: 10
-            }}
-          />
-        ) : (
-          <p>{day.summary}</p>
-        )}
-
-        <div className="stat-row">
-          <span
-            className="pill"
-            style={{
-              color: '#263b3d',
-              background: '#fffdf7',
-              borderColor: '#fffdf7'
-            }}
-          >
-            {done} / {day.stops.length} stops stamped
-          </span>
-
-          <a
-            className="pill"
-            style={{
-              color: '#263b3d',
-              background: '#fffdf7',
-              borderColor: '#fffdf7'
-            }}
-            href={wholeDay(day.id, tripDays)}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Open the whole day’s route in Google Maps ↗
-          </a>
-        </div>
-      </section>
-
-      <div
-        className="actions"
-        style={{ margin: '18px 0', alignItems: 'center' }}
-      >
-        <button
-          className="btn primary"
-          type="button"
-          onClick={() => setEditing(value => !value)}
-        >
-          {editing ? '✓ Done editing' : '✎ Edit itinerary'}
-        </button>
-
-        {editing && (
-          <button
-            className="btn soft"
-            type="button"
-            onClick={addStop}
-          >
-            + Add new stop
-          </button>
-        )}
-      </div>
-
-      {editing && (
-        <p className="muted">
-          Drag cards using the six-dot handle to change their order.
-          Changes save automatically on this device.
-        </p>
-      )}
-
-      <div className="stop-list">
-        {day.stops.map((s, i) => (
-          <div
-            key={s.id}
-            draggable={editing}
-            onDragStart={() => setDraggedId(s.id)}
-            onDragOver={e => {
-              if (editing) e.preventDefault();
-            }}
-            onDrop={e => {
-              e.preventDefault();
-              if (draggedId) moveStop(draggedId, s.id);
-              setDraggedId(null);
-            }}
-            onDragEnd={() => setDraggedId(null)}
-            style={{
-              opacity: draggedId === s.id ? 0.45 : 1,
-              cursor: editing ? 'grab' : 'auto'
-            }}
-          >
-            <StopCard
-              stop={s}
-              previous={
-                i > 0
-                  ? placeFor(
-                      day.stops
-                        .slice(0, i)
-                        .reverse()
-                        .find(prev => prev.placeId !== s.placeId)?.placeId ||
-                        day.stops[i - 1].placeId
-                    ).query
-                  : undefined
-              }
-              index={i}
-              editing={editing}
-              onUpdate={updateStop}
-              onDelete={deleteStop}
-              onMove={moveStop}
-            />
-          </div>
-        ))}
-      </div>
-    </>
-  );
+  const updateStop = (stopId: string, update: Partial<EditableStop>) => { setTripDays(current => current.map(d => d.id === day.id ? { ...d, stops: d.stops.map(s => s.id === stopId ? { ...s, ...update } : s) } : d)); };
+  const addStop = () => { const newStop: Stop = { id: crypto.randomUUID(), time: 'New time', title: 'New activity', placeId: 'alibaug', note: 'Add your description here.', tips: [], category: 'Activity' }; setTripDays(current => current.map(d => d.id === day.id ? { ...d, stops: [...d.stops, newStop] } : d)); notify('New itinerary card added.'); };
+  const deleteStop = (stopId: string) => { if (!window.confirm('Delete this itinerary card?')) return; setTripDays(current => current.map(d => d.id === day.id ? { ...d, stops: d.stops.filter(s => s.id !== stopId) } : d)); notify('Itinerary card deleted.'); };
+  const moveStop = (fromId: string, toId: string) => { if (fromId === toId) return; setTripDays(current => current.map(d => { if (d.id !== day.id) return d; const stops = [...d.stops]; const fromIndex = stops.findIndex(s => s.id === fromId); const toIndex = stops.findIndex(s => s.id === toId); if (fromIndex < 0 || toIndex < 0) return d; const [moved] = stops.splice(fromIndex, 1); stops.splice(toIndex, 0, moved); return { ...d, stops }; })); };
+  return (<><div className="eyebrow">Day {day.id} · {day.date}</div><div className="day-tabs">{tripDays.map(d => <Link className={`day-tab ${d.id === day.id ? 'selected' : ''}`} style={d.id === day.id ? { background: d.color } : undefined} href={`/days/${d.id}`} key={d.id}>Day {d.id}</Link>)}</div>
+  <section className="day-banner" style={{ background: day.color }}><div className="eyebrow" style={{ color: 'rgba(255,255,255,.82)' }}>{day.date} · coastal field notes</div>
+  {editing ? <input value={day.title} onChange={e => setTripDays(current => current.map(d => d.id === day.id ? { ...d, title: e.target.value } : d))} style={{width:'100%',maxWidth:'100%',boxSizing:'border-box',fontSize:'clamp(24px,5vw,45px)',fontWeight:800,padding:8,borderRadius:10}}/> : <h1 style={{ fontSize: 'clamp(30px,6vw,55px)', marginTop: 8 }}>{day.title}</h1>}
+  {editing ? <textarea value={day.summary} onChange={e => setTripDays(current => current.map(d => d.id === day.id ? { ...d, summary: e.target.value } : d))} style={{width:'100%',boxSizing:'border-box',minHeight:65,padding:10,borderRadius:10}}/> : <p>{day.summary}</p>}
+  <div className="stat-row"><span className="pill" style={{color:'#263b3d',background:'#fffdf7',borderColor:'#fffdf7'}}>{done} / {day.stops.length} stops stamped</span><a className="pill" style={{color:'#263b3d',background:'#fffdf7',borderColor:'#fffdf7'}} href={wholeDay(day.id, tripDays)} target="_blank" rel="noopener noreferrer">Open the whole day’s route in Google Maps ↗</a></div></section>
+  <div className="actions" style={{margin:'18px 0',alignItems:'center'}}><button className="btn primary" type="button" onClick={() => setEditing(value => !value)}>{editing ? '✓ Done editing' : '✎ Edit itinerary'}</button>{editing && <button className="btn soft" type="button" onClick={addStop}>+ Add new stop</button>}</div>
+  {editing && <p className="muted">Drag cards using the six-dot handle to change their order. Changes save automatically on this device.</p>}
+  <div className="stop-list">{day.stops.map((s, i) => <div key={s.id} draggable={editing} onDragStart={() => setDraggedId(s.id)} onDragOver={e => {if (editing) e.preventDefault();}} onDrop={e => {e.preventDefault();if (draggedId) moveStop(draggedId, s.id);setDraggedId(null);}} onDragEnd={() => setDraggedId(null)} style={{opacity:draggedId===s.id?0.45:1,cursor:editing?'grab':'auto'}}><StopCard stop={s as EditableStop} previous={i>0?placeFor(day.stops.slice(0,i).reverse().find(prev=>prev.placeId!==s.placeId)?.placeId||day.stops[i-1].placeId).query:undefined} index={i} editing={editing} onUpdate={updateStop} onDelete={deleteStop} onMove={moveStop}/></div>)}</div></>);
 }
 
-function StopCard({
-  stop,
-  previous,
-  index,
-  editing = false,
-  onUpdate,
-  onDelete
-}: {
-  stop: Stop;
-  previous?: string;
-  index: number;
-  editing?: boolean;
-  onUpdate?: (id: string, update: Partial<Stop>) => void;
-  onDelete?: (id: string) => void;
-  onMove?: (fromId: string, toId: string) => void;
-}) {
-  const { saved, toggleDone } = useGuide();
-  const [open, setOpen] = useState(
-    () => new URLSearchParams(window.location.search).get('stop') === stop.id
-  );
-  const [tab, setTab] = useState<'Tips' | 'Food' | 'Photos'>('Tips');
-
-  const place = places.find(p => p.id === stop.placeId) || places[0];
-  const completed = saved.done.includes(stop.id);
-
-  const update = (field: keyof Stop, value: unknown) => {
-    onUpdate?.(stop.id, { [field]: value } as Partial<Stop>);
-  };
-
-  const uploadImage = (file?: File) => {
-    if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-      alert('Please select an image file.');
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      alert('Please choose an image smaller than 5 MB.');
-      return;
-    }
-
-    const reader = new FileReader();
-
-    reader.onload = () => {
-      update('imageDataUrl', String(reader.result));
-    };
-
-    reader.readAsDataURL(file);
-  };
-
-  return (
-    <article className="stop" id={stop.id} data-testid={`stop-${stop.id}`}>
-      {editing ? (
-        <div style={{ padding: 12, borderBottom: '1px solid var(--line)' }}>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              gap: 10,
-              marginBottom: 12
-            }}
-          >
-            <strong>⠿ Edit stop</strong>
-
-            <button
-              className="btn soft"
-              type="button"
-              onClick={() => onDelete?.(stop.id)}
-              style={{ color: '#d9534f' }}
-            >
-              Delete
-            </button>
-          </div>
-
-          <div style={{ display: 'grid', gap: 10 }}>
-            <label>
-              Time
-              <input
-                value={stop.time}
-                onChange={e => update('time', e.target.value)}
-                style={editorInputStyle}
-              />
-            </label>
-
-            <label>
-              Title
-              <input
-                value={stop.title}
-                onChange={e => update('title', e.target.value)}
-                style={editorInputStyle}
-              />
-            </label>
-
-            <label>
-              Place ID
-              <input
-                value={stop.placeId}
-                onChange={e => update('placeId', e.target.value)}
-                style={editorInputStyle}
-                placeholder="Example: alibaug"
-              />
-            </label>
-
-            <label>
-              Description
-              <textarea
-                value={stop.note}
-                onChange={e => update('note', e.target.value)}
-                style={editorInputStyle}
-              />
-            </label>
-
-            <label>
-              Tips (one per line)
-              <textarea
-                value={stop.tips.join('\n')}
-                onChange={e =>
-                  update(
-                    'tips',
-                    e.target.value.split('\n').filter(t => t.trim())
-                  )
-                }
-                style={editorInputStyle}
-              />
-            </label>
-
-            <label>
-              Food details
-              <textarea
-                value={stop.food || ''}
-                onChange={e => update('food', e.target.value)}
-                style={editorInputStyle}
-              />
-            </label>
-
-            <label>
-              Category
-              <input
-                value={stop.category}
-                onChange={e => update('category', e.target.value)}
-                style={editorInputStyle}
-              />
-            </label>
-
-            <label>
-              Upload card image
-              <input
-                type="file"
-                accept="image/*"
-                onChange={e => uploadImage(e.target.files?.[0])}
-                style={{ display: 'block', marginTop: 8, maxWidth: '100%' }}
-              />
-            </label>
-
-            {stop.imageDataUrl && (
-              <div>
-                <img
-                  src={stop.imageDataUrl}
-                  alt={stop.title}
-                  style={{
-                    width: '100%',
-                    maxWidth: 260,
-                    maxHeight: 180,
-                    objectFit: 'cover',
-                    borderRadius: 12
-                  }}
-                />
-
-                <button
-                  className="btn soft"
-                  type="button"
-                  onClick={() => update('imageDataUrl', undefined)}
-                  style={{ marginTop: 8 }}
-                >
-                  Remove image
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      ) : (
-        <img
-          className="stop-image"
-          src={stop.imageDataUrl || `/graphics/journey/${stop.id}.png`}
-          alt={stop.title}
-          loading="lazy"
-        />
-      )}
-
-      <button
-        className="stop-head"
-        aria-expanded={open}
-        onClick={() => setOpen(!open)}
-        data-testid={`expand-${stop.id}`}
-      >
-        <span className="stop-time">{stop.time}</span>
-        <span className="stop-title">
-          {stop.title}{stop.optional ? ' · optional' : ''}
-        </span>
-        <span
-          className={`check-dot ${completed ? 'done' : ''}`}
-          aria-label={completed ? 'Completed' : 'Not completed'}
-        >
-          {completed ? '✓' : ''}
-        </span>
-        <span aria-hidden="true">{open ? '−' : '+'}</span>
-      </button>
-
-      {open && (
-        <div className="stop-detail">
-          <p>{stop.note}</p>
-
-          {stop.cutoff && <div className="notice">{stop.cutoff}</div>}
-
-          <div className="subtabs" role="tablist">
-            {(['Tips', 'Food', 'Photos'] as const)
-              .filter(t => t !== 'Food' || Boolean(stop.food))
-              .map(t => (
-                <button
-                  role="tab"
-                  aria-selected={tab === t}
-                  onClick={() => setTab(t)}
-                  className={`subtab ${tab === t ? 'on' : ''}`}
-                  key={t}
-                >
-                  {t}
-                </button>
-              ))}
-          </div>
-
-          {tab === 'Tips' && (
-            <ul className="tip-list">
-              {stop.tips.map((t, i) => <li key={i}>{t}</li>)}
-            </ul>
-          )}
-
-          {tab === 'Food' && (
-            <p>{stop.food || 'No food details added.'}</p>
-          )}
-
-          {tab === 'Photos' && (
-            <div>
-              {stop.imageDataUrl && (
-                <img
-                  src={stop.imageDataUrl}
-                  alt={stop.title}
-                  style={{
-                    width: '100%',
-                    borderRadius: 12,
-                    marginBottom: 10
-                  }}
-                />
-              )}
-              <a
-                className="btn soft"
-                href={imageSearch(`${place.name} Alibaug`)}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Search photos ↗
-              </a>
-            </div>
-          )}
-
-          <div className="detail-actions">
-            <a
-              href={directions(
-                saved.pin && place.id === 'blue-waves-resort'
-                  ? saved.pin
-                  : place.query,
-                undefined,
-                index > 1 ? 'two-wheeler' : 'transit'
-              )}
-              className="btn soft"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              From my location ↗
-            </a>
-
-            {previous && previous !== place.query && (
-              <a
-                href={directions(place.query, previous)}
-                className="btn soft"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                From previous stop ↗
-              </a>
-            )}
-
-            <button
-              className="btn primary"
-              onClick={() => toggleDone(stop.id)}
-            >
-              {completed ? 'Undo stamp' : 'I’m here: stamp it!'}
-            </button>
-
-            <Link className="btn soft" href={`/place/${place.id}`}>
-              About {place.name}
-            </Link>
-          </div>
-        </div>
-      )}
-    </article>
-  );
+function StopCard({stop,previous,index,editing=false,onUpdate,onDelete}: {stop:EditableStop;previous?:string;index:number;editing?:boolean;onUpdate?:(id:string,update:Partial<EditableStop>)=>void;onDelete?:(id:string)=>void;onMove?:(fromId:string,toId:string)=>void;}) {
+  const { saved, toggleDone } = useGuide(); const [open, setOpen] = useState(() => new URLSearchParams(window.location.search).get('stop') === stop.id); const [tab, setTab] = useState<'Tips'|'Food'|'Photos'>('Tips');
+  const place = places.find(p => p.id === stop.placeId) || places[0]; const completed = saved.done.includes(stop.id);
+  const update = (field:keyof EditableStop,value:unknown) => {onUpdate?.(stop.id,{[field]:value} as Partial<EditableStop>);};
+  const foodLocations:FoodLocation[]=stop.foodLocations||[];
+  const updateFoodLocation=(index:number,changes:Partial<FoodLocation>)=>update('foodLocations',foodLocations.map((item,i)=>i===index?{...item,...changes}:item));
+  const addFoodLocation=()=>update('foodLocations',[...foodLocations,{name:'',coordinates:'',url:'',websiteUrl:''}]);
+  const removeFoodLocation=(index:number)=>update('foodLocations',foodLocations.filter((_,i)=>i!==index));
+  const uploadImage=(file?:File)=>{if(!file)return;if(!file.type.startsWith('image/')){alert('Please select an image file.');return;}if(file.size>5*1024*1024){alert('Please choose an image smaller than 5 MB.');return;}const reader=new FileReader();reader.onload=()=>update('imageDataUrl',String(reader.result));reader.readAsDataURL(file);};
+  return <article className="stop" id={stop.id} data-testid={`stop-${stop.id}`}>
+    {editing ? <div style={{padding:12,borderBottom:'1px solid var(--line)'}}><div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:10,marginBottom:12}}><strong>⠿ Edit stop</strong><button className="btn soft" type="button" onClick={()=>onDelete?.(stop.id)} style={{color:'#d9534f'}}>Delete</button></div>
+    <div style={{display:'grid',gap:10}}>
+      <label>Time<input value={stop.time} onChange={e=>update('time',e.target.value)} style={editorInputStyle}/></label>
+      <label>Title<input value={stop.title} onChange={e=>update('title',e.target.value)} style={editorInputStyle}/></label>
+      <label>Place ID<input value={stop.placeId} onChange={e=>update('placeId',e.target.value)} style={editorInputStyle} placeholder="Example: alibaug"/></label>
+      <label>Description<textarea value={stop.note} onChange={e=>update('note',e.target.value)} style={editorInputStyle}/></label>
+      <label>Tips (one per line)<textarea value={stop.tips.join('\n')} onChange={e=>update('tips',e.target.value.split('\n').filter(t=>t.trim()))} style={editorInputStyle}/></label>
+      <label>Food details<textarea value={stop.food||''} onChange={e=>update('food',e.target.value)} style={editorInputStyle}/></label>
+      <div style={{display:'grid',gap:10,padding:12,border:'1px solid var(--line)',borderRadius:12}}>
+        <strong>Food places and links</strong>
+        {foodLocations.map((foodLocation,index)=><div key={`${stop.id}-food-${index}`} style={{display:'grid',gap:8,padding:10,border:'1px solid var(--line)',borderRadius:10}}>
+          <strong>Restaurant {index+1}</strong>
+          <label>Restaurant name<input value={foodLocation.name} onChange={e=>updateFoodLocation(index,{name:e.target.value})} style={editorInputStyle} placeholder="Restaurant name"/></label>
+          <label>Google Maps URL<input type="url" value={foodLocation.url||''} onChange={e=>updateFoodLocation(index,{url:e.target.value})} style={editorInputStyle} placeholder="https://maps.google.com/..."/></label>
+          <label>Website URL (optional)<input type="url" value={foodLocation.websiteUrl||''} onChange={e=>updateFoodLocation(index,{websiteUrl:e.target.value})} style={editorInputStyle} placeholder="https://restaurant-website.com"/></label>
+          <label>Coordinates (latitude, longitude)<input value={foodLocation.coordinates||''} onChange={e=>updateFoodLocation(index,{coordinates:e.target.value})} style={editorInputStyle} placeholder="18.65,72.87"/></label>
+          <button className="btn soft" type="button" onClick={()=>removeFoodLocation(index)} style={{justifySelf:'start',color:'#d9534f'}}>Remove restaurant</button>
+        </div>)}
+        <button className="btn soft" type="button" onClick={addFoodLocation}>+ Add food place</button>
+      </div>
+      <label>Booking URL<input type="url" value={stop.bookingUrl||''} onChange={e=>update('bookingUrl',e.target.value)} style={editorInputStyle} placeholder="https://..."/></label>
+      <label>Ferry booking URL<input type="url" value={stop.ferryBookingUrl||''} onChange={e=>update('ferryBookingUrl',e.target.value)} style={editorInputStyle} placeholder="https://..."/></label>
+      <label>Official website URL<input type="url" value={stop.websiteUrl||''} onChange={e=>update('websiteUrl',e.target.value)} style={editorInputStyle} placeholder="https://..."/></label>
+      <label>Category<input value={stop.category} onChange={e=>update('category',e.target.value)} style={editorInputStyle}/></label>
+      <label>Upload card image<input type="file" accept="image/*" onChange={e=>uploadImage(e.target.files?.[0])} style={{display:'block',marginTop:8,maxWidth:'100%'}}/></label>
+      {stop.imageDataUrl&&<div><img src={stop.imageDataUrl} alt={stop.title} style={{width:'100%',maxWidth:260,maxHeight:180,objectFit:'cover',borderRadius:12}}/><button className="btn soft" type="button" onClick={()=>update('imageDataUrl',undefined)} style={{marginTop:8}}>Remove image</button></div>}
+    </div></div> : <img className="stop-image" src={stop.imageDataUrl||`/graphics/journey/${stop.id}.png`} alt={stop.title} loading="lazy"/>}
+    <button className="stop-head" aria-expanded={open} onClick={()=>setOpen(!open)} data-testid={`expand-${stop.id}`}><span className="stop-time">{stop.time}</span><span className="stop-title">{stop.title}{stop.optional?' · optional':''}</span><span className={`check-dot ${completed?'done':''}`} aria-label={completed?'Completed':'Not completed'}>{completed?'✓':''}</span><span aria-hidden="true">{open?'−':'+'}</span></button>
+    {open&&<div className="stop-detail"><p>{stop.note}</p>{stop.cutoff&&<div className="notice">{stop.cutoff}</div>}
+      <div className="subtabs" role="tablist">{(['Tips','Food','Photos'] as const).filter(t=>t!=='Food'||Boolean(stop.food||foodLocations.length)).map(t=><button role="tab" aria-selected={tab===t} onClick={()=>setTab(t)} className={`subtab ${tab===t?'on':''}`} key={t}>{t}</button>)}</div>
+      {tab==='Tips'&&<ul className="tip-list">{stop.tips.map((t,i)=><li key={i}>{t}</li>)}</ul>}
+      {tab==='Food'&&<div style={{display:'grid',gap:10}}>{stop.food&&<p>{stop.food}</p>}{foodLocations.length>0?foodLocations.map((foodLocation,i)=><div key={`${foodLocation.name}-${i}`} className="card" style={{padding:12,display:'grid',gap:8}}><strong>{foodLocation.name||`Food place ${i+1}`}</strong><div className="actions">{externalUrl(foodLocation.url)&&<a className="btn soft" href={externalUrl(foodLocation.url)} target="_blank" rel="noopener noreferrer">Open in Google Maps ↗</a>}{externalUrl(foodLocation.websiteUrl)&&<a className="btn soft" href={externalUrl(foodLocation.websiteUrl)} target="_blank" rel="noopener noreferrer">Website ↗</a>}</div></div>):!stop.food&&<p>No food details or restaurants added.</p>}</div>}
+      {tab==='Photos'&&<div>{stop.imageDataUrl&&<img src={stop.imageDataUrl} alt={stop.title} style={{width:'100%',borderRadius:12,marginBottom:10}}/>}<a className="btn soft" href={imageSearch(`${place.name} Alibaug`)} target="_blank" rel="noopener noreferrer">Search photos ↗</a></div>}
+      <div className="detail-actions">
+        {externalUrl(stop.bookingUrl)&&<a className="btn primary" href={externalUrl(stop.bookingUrl)} target="_blank" rel="noopener noreferrer">Book tickets ↗</a>}
+        {externalUrl(stop.ferryBookingUrl)&&<a className="btn soft" href={externalUrl(stop.ferryBookingUrl)} target="_blank" rel="noopener noreferrer">Ferry tickets ↗</a>}
+        {externalUrl(stop.websiteUrl)&&<a className="btn soft" href={externalUrl(stop.websiteUrl)} target="_blank" rel="noopener noreferrer">Official website ↗</a>}
+        <a href={directions(saved.pin&&place.id==='blue-waves-resort'?saved.pin:place.query,undefined,index>1?'two-wheeler':'transit')} className="btn soft" target="_blank" rel="noopener noreferrer">From my location ↗</a>
+        {previous&&previous!==place.query&&<a href={directions(place.query,previous)} className="btn soft" target="_blank" rel="noopener noreferrer">From previous stop ↗</a>}
+        <button className="btn primary" onClick={()=>toggleDone(stop.id)}>{completed?'Undo stamp':'I’m here: stamp it!'}</button>
+        <Link className="btn soft" href={`/place/${place.id}`}>About {place.name}</Link>
+      </div>
+    </div>}
+  </article>;
 }
-
-const editorInputStyle: React.CSSProperties = {
-  display: 'block',
-  width: '100%',
-  maxWidth: '100%',
-  boxSizing: 'border-box',
-  marginTop: 6,
-  padding: '11px 12px',
-  border: '1px solid var(--line)',
-  borderRadius: 10,
-  background: 'var(--cream)',
-  color: 'var(--ink)',
-  font: 'inherit'
-};
+const editorInputStyle:React.CSSProperties={display:'block',width:'100%',maxWidth:'100%',boxSizing:'border-box',marginTop:6,padding:'11px 12px',border:'1px solid var(--line)',borderRadius:10,background:'var(--cream)',color:'var(--ink)',font:'inherit'};
 
 function PlacePage({placeId}:{placeId:string}){
  const { saved, setSaved, toggleDone, tripDays } = useGuide();const place=places.find(p=>p.id===placeId);const [pin,setPin]=useState(saved.pin);if(!place)return <NotFound/>;const visits=tripDays.flatMap(d=>d.stops.filter(s=>s.placeId===place.id).map(s=>({day:d.id,title:s.title,id:s.id,time:s.time})));const done=visits.some(v=>saved.done.includes(v.id));const resort=place.id==='blue-waves-resort';const query=resort&&saved.pin?saved.pin:place.query;return <><div className="eyebrow">{place.category}</div><section className="place-hero"><div><h1 style={{fontSize:'clamp(34px,6vw,60px)'}}>{place.name}</h1><p className="muted">{place.fact}</p><div className="actions"><button className="btn primary" onClick={()=>{const visit=visits[0];if(visit)toggleDone(visit.id)}} data-testid="place-stamp">{done?'Stamped ✓':'Stamp this place'}</button><a className="btn soft" href={mapsSearch(query)} target="_blank" rel="noopener noreferrer" data-testid="place-maps">Open in Maps ↗</a><a className="btn soft" href={directions(query,undefined,'two-wheeler')} target="_blank" rel="noopener noreferrer">Navigate ↗</a><a className="btn soft" href={imageSearch(place.name)} target="_blank" rel="noopener noreferrer">Photos ↗</a></div></div><img className="character" src={characterAssets.parked} alt="The couple taking a break on their green scooty"/></section><section className="section card"><div className="eyebrow">Pocket notes</div><h2>Three things to remember</h2><ul className="tip-list">{place.tips.map(t=><li key={t}>{t}</li>)}</ul></section>{resort&&<section className="section card"><div className="eyebrow">Use your own location safely</div><h2>Exact resort pin</h2><p className="muted">The exact resort location has not been verified. Add a verified address or exact latitude and longitude; the saved pin will be used for directions and shown on the map.</p><form onSubmit={e=>{e.preventDefault();setSaved(s=>({...s,pin}));}}><label htmlFor="pin-input">Address or lat,lng</label><div className="actions" style={{marginTop:8}}><input id="pin-input" value={pin} onChange={e=>setPin(e.target.value)} placeholder="Paste the resort’s verified pin" style={{flex:'1 1 220px',minHeight:46,border:'1px solid var(--line)',borderRadius:15,padding:'0 13px',background:'var(--cream)',color:'var(--ink)'}} data-testid="input-resort-pin"/><button className="btn primary" type="submit" data-testid="save-resort-pin">Save exact pin</button></div></form>{saved.pin&&<p role="status" className="muted" data-testid="status-pin-saved">Saved for directions and the map on this device.</p>}</section>}<section className="section"><div className="section-head"><div><div className="eyebrow">Find your bearings</div><h2>Map search</h2></div><span className="pill">Provider: Google Maps</span></div><iframe title={`Map search for ${place.name}`} className="map-frame" loading="lazy" referrerPolicy="no-referrer-when-downgrade" src={`https://www.google.com/maps?q=${encode(query)}&output=embed`}/></section><section className="section card"><div className="eyebrow">Stops along your trip</div><h2>When you’re here</h2>{visits.length?visits.map(v=><p key={v.id}><Link className="btn soft" href={`/days/${v.day}?stop=${v.id}`} data-testid={`visit-link-${v.id}`}>Day {v.day} · {v.time} · {v.title} →</Link></p>):<p>This place is a handy extra search, not a scheduled stop.</p>}</section></>}
 function Journey({initialDayId}:{initialDayId?:number}){const now=new Date();const start=new Date(2026,10,26);const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());const elapsed=Math.floor((today.getTime()-start.getTime())/86400000);const predictedDay=Math.min(4,Math.max(0,elapsed+(now.getHours()>=21?1:0)));return <DayPage dayId={initialDayId??predictedDay}/>}
-function JourneyExperience() {
-  return <Journey />;
-}
+function JourneyExperience(){return <Journey/>}
 
 function LeafletMapPage(){
  const { saved, tripDays } = useGuide();const [day,setDay]=useState(1);const [userPoint,setUserPoint]=useState<[number,number]|null>(null);const [resortPinPoint,setResortPinPoint]=useState<[number,number]|null>(null);const [resortPinLabel,setResortPinLabel]=useState('');const [status,setStatus]=useState('Selected-day itinerary stops and eateries across all four days are shown.');const mapNode=useRef<HTMLDivElement>(null);const mapRef=useRef<L.Map|null>(null);const markerLayer=useRef<L.LayerGroup|null>(null);
-
  const dayPoints=useMemo(()=>{const stops=tripDays.find(item=>item.id===day)?.stops||[];return stops.filter((stop,index)=>stops.findIndex(candidate=>candidate.placeId===stop.placeId)===index)},[day,tripDays]);
-
  useEffect(()=>{let active=true;setResortPinPoint(null);if(!saved.pin.trim()){setResortPinLabel('');return()=>{active=false}}const match=saved.pin.trim().match(/^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/);if(match){const lat=Number(match[1]),lon=Number(match[2]);if(lat>=-90&&lat<=90&&lon>=-180&&lon<=180){setResortPinPoint([lat,lon]);setResortPinLabel('Verified resort pin');return()=>{active=false}}}setResortPinLabel('Saved resort address');fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q='+encodeURIComponent(saved.pin)).then(response=>response.ok?response.json():[]).then((results:{lat:string;lon:string}[])=>{if(!active||!results[0])return;const lat=Number(results[0].lat),lon=Number(results[0].lon);if(Number.isFinite(lat)&&Number.isFinite(lon))setResortPinPoint([lat,lon])}).catch(()=>undefined);return()=>{active=false}},[saved.pin]);
-
  useEffect(()=>{if(!mapNode.current||mapRef.current)return;const map=L.map(mapNode.current,{scrollWheelZoom:false,zoomControl:true}).setView([18.64,72.87],10);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'}).addTo(map);markerLayer.current=L.layerGroup().addTo(map);mapRef.current=map;requestAnimationFrame(()=>map.invalidateSize());return()=>{map.remove();mapRef.current=null}},[]);
-
- useEffect(()=>{const map=mapRef.current,layer=markerLayer.current;if(!map||!layer)return;layer.clearLayers();const selectedPlaces=[...new Set(dayPoints.map(stop=>stop.placeId))].map(id=>places.find(place=>place.id===id)).filter((place):place is NonNullable<typeof place>=>Boolean(place?.coordinates&&place.id!=='blue-waves-resort'));const points:[number,number][]=[];selectedPlaces.forEach(place=>{const point=place.coordinates!;points.push(point);L.circleMarker(point,{radius:9,color:'#fffaf0',weight:2,fillColor:'#f2546f',fillOpacity:1}).bindPopup(place.name).addTo(layer)});const allEateries=tripDays.flatMap(tripDay=>tripDay.stops.flatMap(stop=>stop.foodLocations||[]));allEateries.forEach(eatery=>{const point=eatery.coordinates.split(',').map(Number) as [number,number];points.push(point);const popup=document.createElement('a');popup.href=eatery.url;popup.target='_blank';popup.rel='noopener noreferrer';popup.textContent=eatery.name;L.circleMarker(point,{radius:7,color:'#fffaf0',weight:2,fillColor:'#2f7fa6',fillOpacity:1}).bindPopup(popup).addTo(layer)});if(resortPinPoint){points.push(resortPinPoint);L.circleMarker(resortPinPoint,{radius:11,color:'#fffaf0',weight:3,fillColor:'#d99a4a',fillOpacity:1}).bindPopup(resortPinLabel).addTo(layer)}if(userPoint){points.push(userPoint);L.circleMarker(userPoint,{radius:10,color:'#263b3d',weight:3,fillColor:'#86ad8b',fillOpacity:1}).bindPopup('Your current location').addTo(layer)}if(points.length>1)map.fitBounds(L.latLngBounds(points).pad(.12),{maxZoom:12});else if(points.length===1)map.setView(points[0],14)},[day,dayPoints,userPoint,resortPinPoint,resortPinLabel,tripDays]);
-
+ useEffect(()=>{const map=mapRef.current,layer=markerLayer.current;if(!map||!layer)return;layer.clearLayers();const selectedPlaces=[...new Set(dayPoints.map(stop=>stop.placeId))].map(id=>places.find(place=>place.id===id)).filter((place):place is NonNullable<typeof place>=>Boolean(place?.coordinates&&place.id!=='blue-waves-resort'));const points:[number,number][]=[];selectedPlaces.forEach(place=>{const point=place.coordinates!;points.push(point);L.circleMarker(point,{radius:9,color:'#fffaf0',weight:2,fillColor:'#f2546f',fillOpacity:1}).bindPopup(place.name).addTo(layer)});const allEateries=tripDays.flatMap(tripDay=>tripDay.stops.flatMap(stop=>stop.foodLocations||[]));allEateries.forEach(eatery=>{const point=eatery.coordinates.split(',').map(Number) as [number,number];if(!Number.isFinite(point[0])||!Number.isFinite(point[1]))return;points.push(point);const popup=document.createElement('a');popup.href=externalUrl(eatery.url)||mapsSearch(eatery.name);popup.target='_blank';popup.rel='noopener noreferrer';popup.textContent=eatery.name;L.circleMarker(point,{radius:7,color:'#fffaf0',weight:2,fillColor:'#2f7fa6',fillOpacity:1}).bindPopup(popup).addTo(layer)});if(resortPinPoint){points.push(resortPinPoint);L.circleMarker(resortPinPoint,{radius:11,color:'#fffaf0',weight:3,fillColor:'#d99a4a',fillOpacity:1}).bindPopup(resortPinLabel).addTo(layer)}if(userPoint){points.push(userPoint);L.circleMarker(userPoint,{radius:10,color:'#263b3d',weight:3,fillColor:'#86ad8b',fillOpacity:1}).bindPopup('Your current location').addTo(layer)}if(points.length>1)map.fitBounds(L.latLngBounds(points).pad(.12),{maxZoom:12});else if(points.length===1)map.setView(points[0],14)},[day,dayPoints,userPoint,resortPinPoint,resortPinLabel,tripDays]);
  const locate=()=>{if(!navigator.geolocation){setStatus('Location is unavailable in this browser. Search links below still work.');return}setStatus('Finding your location…');navigator.geolocation.getCurrentPosition(position=>{setUserPoint([position.coords.latitude,position.coords.longitude]);setStatus('Your location is shown only on this device.');},()=>setStatus('Location permission was unavailable. You can still use the place searches below.'),{enableHighAccuracy:false,timeout:9000})};
-
  const eateries=tripDays.find(item=>item.id===day)?.stops.flatMap(stop=>stop.category==='Food'?(stop.foodLocations||[]):[])||[];
-
- return <div className="map-page" style={{display:'grid',gap:18}}><header className="map-heading"><div className="eyebrow">Map · OpenStreetMap</div><h1 style={{fontSize:'clamp(36px,6vw,60px)',margin:'8px 0'}}>The coast, without guesswork.</h1><p className="muted" style={{margin:'0 0 4px'}}>See stops for the selected day and eateries across all four days. {saved.pin?resortPinPoint?'Your saved resort pin is shown in gold.':resortPinLabel==='Saved resort address'?'Looking up your saved resort address…':'Your saved resort location could not be plotted. Check the address or enter latitude, longitude.':'The exact resort location has not been verified. Add a pin from the Blue Waves Resort page to show it here.'}</p></header><div className="map-panel" style={{overflow:'hidden',borderRadius:22,border:'1px solid var(--line)',boxShadow:'var(--shadow)'}}><div ref={mapNode} className="leaflet-map" role="application" aria-label="Interactive OpenStreetMap. Use zoom controls to explore."><span className="sr-only">OpenStreetMap; map centered on the Alibaug area.</span></div></div><div className="map-marker-legend" aria-label="Map marker legend"><span><i className="legend-stop"/>Itinerary stop</span><span><i className="legend-eatery"/>Eatery</span><span><i className="legend-user"/>Your location</span><span><i className="legend-resort"/>Resort</span></div><section className="map-controls card" style={{display:'grid',gap:16}}><div><div className="eyebrow">Choose a day</div><div className="day-tabs">{tripDays.map(d=><button className={`day-tab ${day===d.id?'selected':''}`} style={day===d.id?{background:d.color}:undefined} key={d.id} onClick={()=>setDay(d.id)} data-testid={`map-day-${d.id}`}>Day {d.id}</button>)}</div></div><div className="actions"><button className="btn primary" onClick={locate} data-testid="locate-me">Locate me</button><a className="btn soft" href={wholeDay(day,tripDays)} target="_blank" rel="noopener noreferrer">Open Day {day} in Google Maps ↗</a></div><p role="status" className="muted" data-testid="map-status">{status}</p></section><section className="section card map-stops"><div className="eyebrow">Day {day} · route order</div><h2>Stops, in sequence</h2><div className="route-list">{dayPoints.map((s,i)=><Link href={`/days/${day}#${s.id}`} key={s.id} data-testid={`map-route-stop-${s.id}`}><span>{String(i+1).padStart(2,'0')} · {placeFor(s.placeId).name}</span><span>View stop →</span></Link>)}</div></section>{eateries.length>0&&<section className="section card map-stops"><div className="eyebrow">Day {day} · Eateries</div><h2>Food places</h2><div className="route-list">{eateries.map((eatery,i)=><a key={`${eatery.name}-${i}`} href={eatery.url} target="_blank" rel="noopener noreferrer"><span>{eatery.name}</span><span>Open in Maps ↗</span></a>)}</div></section>}</div>
+ return <div className="map-page" style={{display:'grid',gap:18}}><header className="map-heading"><div className="eyebrow">Map · OpenStreetMap</div><h1 style={{fontSize:'clamp(36px,6vw,60px)',margin:'8px 0'}}>The coast, without guesswork.</h1><p className="muted" style={{margin:'0 0 4px'}}>See stops for the selected day and eateries across all four days. {saved.pin?resortPinPoint?'Your saved resort pin is shown in gold.':resortPinLabel==='Saved resort address'?'Looking up your saved resort address…':'Your saved resort location could not be plotted. Check the address or enter latitude, longitude.':'The exact resort location has not been verified. Add a pin from the Blue Waves Resort page to show it here.'}</p></header><div className="map-panel" style={{overflow:'hidden',borderRadius:22,border:'1px solid var(--line)',boxShadow:'var(--shadow)'}}><div ref={mapNode} className="leaflet-map" role="application" aria-label="Interactive OpenStreetMap. Use zoom controls to explore."><span className="sr-only">OpenStreetMap; map centered on the Alibaug area.</span></div></div><div className="map-marker-legend" aria-label="Map marker legend"><span><i className="legend-stop"/>Itinerary stop</span><span><i className="legend-eatery"/>Eatery</span><span><i className="legend-user"/>Your location</span><span><i className="legend-resort"/>Resort</span></div><section className="map-controls card" style={{display:'grid',gap:16}}><div><div className="eyebrow">Choose a day</div><div className="day-tabs">{tripDays.map(d=><button className={`day-tab ${day===d.id?'selected':''}`} style={day===d.id?{background:d.color}:undefined} key={d.id} onClick={()=>setDay(d.id)} data-testid={`map-day-${d.id}`}>Day {d.id}</button>)}</div></div><div className="actions"><button className="btn primary" onClick={locate} data-testid="locate-me">Locate me</button><a className="btn soft" href={wholeDay(day,tripDays)} target="_blank" rel="noopener noreferrer">Open Day {day} in Google Maps ↗</a></div><p role="status" className="muted" data-testid="map-status">{status}</p></section><section className="section card map-stops"><div className="eyebrow">Day {day} · route order</div><h2>Stops, in sequence</h2><div className="route-list">{dayPoints.map((s,i)=><Link href={`/days/${day}#${s.id}`} key={s.id} data-testid={`map-route-stop-${s.id}`}><span>{String(i+1).padStart(2,'0')} · {placeFor(s.placeId).name}</span><span>View stop →</span></Link>)}</div></section>{eateries.length>0&&<section className="section card map-stops"><div className="eyebrow">Day {day} · Eateries</div><h2>Food places</h2><div className="route-list">{eateries.map((eatery,i)=><a key={`${eatery.name}-${i}`} href={externalUrl(eatery.url)||mapsSearch(eatery.name)} target="_blank" rel="noopener noreferrer"><span>{eatery.name}</span><span>Open in Maps ↗</span></a>)}</div></section>}</div>
 }
 
 type PackingItem={id:string;text:string;done:boolean};
 type PackingLists={his:PackingItem[];hers:PackingItem[]};
 const PACKING_KEY='alibaug-packing-v1';
 function initialPackingLists():PackingLists{try{const stored=localStorage.getItem(PACKING_KEY);if(stored)return JSON.parse(stored) as PackingLists}catch{}return {his:packingDefaults.his.map((text,i)=>({id:'his-'+i,text,done:false})),hers:packingDefaults.hers.map((text,i)=>({id:'hers-'+i,text,done:false}))}}
-
 function Prep() {
-  const { saved } = useGuide();
-
-  const [packing, setPacking] = useState<PackingLists>(initialPackingLists);
-
-  const [tripList, setTripList] = useState<PackingItem[]>(() => {
-    try {
-      const stored = localStorage.getItem('alibaug-during-trip-v1');
-
-      if (stored) return JSON.parse(stored) as PackingItem[];
-    } catch {}
-
-    return duringTripItems.map((text, i) => ({
-      id: 'during-trip-' + i,
-      text,
-      done: saved.checks.includes('during-trip-' + i)
-    }));
-  });
-
-  const [storageMessage, setStorageMessage] = useState('');
-
-  // Save packing checklist immediately
-  const savePacking = (next: PackingLists) => {
-    try {
-      localStorage.setItem(PACKING_KEY, JSON.stringify(next));
-      setPacking(next);
-      setStorageMessage('Changes saved on this device.');
-    } catch {
-      setStorageMessage('Could not save changes. Browser storage may be full.');
-    }
-  };
-
-  // Save during-trip checklist immediately
-  const saveTripList = (next: PackingItem[]) => {
-    try {
-      localStorage.setItem('alibaug-during-trip-v1', JSON.stringify(next));
-      setTripList(next);
-      setStorageMessage('Changes saved on this device.');
-    } catch {
-      setStorageMessage('Could not save changes. Browser storage may be full.');
-    }
-  };
-
-  const updateTripItem = (id: string, update: Partial<PackingItem>) => {
-    saveTripList(
-      tripList.map(item =>
-        item.id === id ? { ...item, ...update } : item
-      )
-    );
-  };
-
-  const addTripItem = () => {
-    saveTripList([
-      ...tripList,
-      {
-        id: crypto.randomUUID(),
-        text: '',
-        done: false
-      }
-    ]);
-  };
-
-  const removeTripItem = (id: string) => {
-    saveTripList(tripList.filter(item => item.id !== id));
-  };
-
-  const updatePacking = (id: string, update: Partial<PackingItem>) => {
-    savePacking({
-      his: packing.his.map(item =>
-        item.id === id ? { ...item, ...update } : item
-      ),
-      hers: packing.hers.map(item =>
-        item.id === id ? { ...item, ...update } : item
-      )
-    });
-  };
-
-  const addPackingItem = () => {
-    savePacking({
-      ...packing,
-      his: [
-        ...packing.his,
-        {
-          id: crypto.randomUUID(),
-          text: '',
-          done: false
-        }
-      ]
-    });
-  };
-
-  const removePackingItem = (id: string) => {
-    savePacking({
-      his: packing.his.filter(item => item.id !== id),
-      hers: packing.hers.filter(item => item.id !== id)
-    });
-  };
-
-  const packingItems = [...packing.his, ...packing.hers];
-
-  const packingCount = packingItems.filter(item => item.done).length;
-  const tripCount = tripList.filter(item => item.done).length;
-
-  const resizeText = (element: HTMLTextAreaElement) => {
-    element.style.height = 'auto';
-    element.style.height = `${element.scrollHeight}px`;
-  };
-
-  return <>
-    <div className="eyebrow">Ready, gently</div>
-
-    <h1 style={{ fontSize: 'clamp(38px,6vw,64px)' }}>
-      Pack well.<br />Enjoy the coast.
-    </h1>
-
-    <p className="muted">
-      A shared packing checklist and a during-trip checklist. Your progress saves on this device.
-    </p>
-
-    <div className="stat-row">
-      <span className="stat">
-        {packingCount}/{packingItems.length} packing items · {tripCount}/{tripList.length} during-trip checks done
-      </span>
-    </div>
-
-    {storageMessage && (
-      <p role="status" className="muted">
-        {storageMessage}
-      </p>
-    )}
-
-    <div className="prep-groups">
-
-      {/* Packing guide */}
-
-      <section className="card">
-        <div className="eyebrow">Before the trip</div>
-        <h2>Packing guide</h2>
-
-        <p className="muted">
-          One shared list, editable and saved on this device.
-        </p>
-
-        <div className="checklist">
-          {packingItems.map(item => (
-            <div className="checkline" key={item.id}>
-
-              <input
-                className="checkline-checkbox"
-                type="checkbox"
-                checked={item.done}
-                onChange={e =>
-                  updatePacking(item.id, { done: e.target.checked })
-                }
-                aria-label={item.text || 'Mark packing item done'}
-              />
-
-              <textarea
-                rows={1}
-                value={item.text}
-                onChange={e => {
-                  updatePacking(item.id, { text: e.target.value });
-                  resizeText(e.currentTarget);
-                }}
-                ref={element => {
-                  if (element) resizeText(element);
-                }}
-                aria-label="Edit packing item"
-                placeholder="Add an item"
-                className="checkline-text"
-              />
-
-              <button
-                className="checkline-delete"
-                type="button"
-                onClick={() => removePackingItem(item.id)}
-                aria-label="Remove item"
-                style={{
-                  border: 0,
-                  background: 'transparent',
-                  padding: '4px 8px',
-                  color: 'var(--muted)',
-                  fontSize: 20,
-                  lineHeight: 1,
-                  cursor: 'pointer'
-                }}
-              >
-                ×
-              </button>
-
-            </div>
-          ))}
-
-          <button
-            className="btn soft"
-            type="button"
-            onClick={addPackingItem}
-          >
-            + Add item
-          </button>
-        </div>
-      </section>
-
-      {/* During the trip */}
-
-      <section className="card">
-        <div className="eyebrow">While you're away</div>
-        <h2>During the trip</h2>
-
-        <div className="checklist">
-          {tripList.map(item => (
-            <div
-              className="checkline"
-              key={item.id}
-              data-testid={'checkline-' + item.id}
-            >
-
-              <input
-                className="checkline-checkbox"
-                type="checkbox"
-                checked={item.done}
-                onChange={e =>
-                  updateTripItem(item.id, { done: e.target.checked })
-                }
-                aria-label={item.text || 'Mark trip item done'}
-              />
-
-              <textarea
-                rows={1}
-                value={item.text}
-                onChange={e => {
-                  updateTripItem(item.id, { text: e.target.value });
-                  resizeText(e.currentTarget);
-                }}
-                ref={element => {
-                  if (element) resizeText(element);
-                }}
-                aria-label="Edit trip checklist item"
-                placeholder="Add an item"
-                className="checkline-text"
-              />
-
-              <button
-                className="checkline-delete"
-                type="button"
-                onClick={() => removeTripItem(item.id)}
-                aria-label="Remove item"
-                style={{
-                  border: 0,
-                  background: 'transparent',
-                  padding: '4px 8px',
-                  color: 'var(--muted)',
-                  fontSize: 20,
-                  lineHeight: 1,
-                  cursor: 'pointer'
-                }}
-              >
-                ×
-              </button>
-
-            </div>
-          ))}
-
-          <button
-            className="btn soft"
-            type="button"
-            onClick={addTripItem}
-          >
-            + Add item
-          </button>
-        </div>
-      </section>
-
-    </div>
-  </>;
+  const { saved } = useGuide(); const [packing,setPacking]=useState<PackingLists>(initialPackingLists);
+  const [tripList,setTripList]=useState<PackingItem[]>(()=>{try{const stored=localStorage.getItem('alibaug-during-trip-v1');if(stored)return JSON.parse(stored) as PackingItem[]}catch{}return duringTripItems.map((text,i)=>({id:'during-trip-'+i,text,done:saved.checks.includes('during-trip-'+i)}));});
+  const [storageMessage,setStorageMessage]=useState('');
+  const savePacking=(next:PackingLists)=>{try{localStorage.setItem(PACKING_KEY,JSON.stringify(next));setPacking(next);setStorageMessage('Changes saved on this device.')}catch{setStorageMessage('Could not save changes. Browser storage may be full.')}};
+  const saveTripList=(next:PackingItem[])=>{try{localStorage.setItem('alibaug-during-trip-v1',JSON.stringify(next));setTripList(next);setStorageMessage('Changes saved on this device.')}catch{setStorageMessage('Could not save changes. Browser storage may be full.')}};
+  const updateTripItem=(id:string,update:Partial<PackingItem>)=>saveTripList(tripList.map(item=>item.id===id?{...item,...update}:item));
+  const addTripItem=()=>saveTripList([...tripList,{id:crypto.randomUUID(),text:'',done:false}]);
+  const removeTripItem=(id:string)=>saveTripList(tripList.filter(item=>item.id!==id));
+  const updatePacking=(id:string,update:Partial<PackingItem>)=>savePacking({his:packing.his.map(item=>item.id===id?{...item,...update}:item),hers:packing.hers.map(item=>item.id===id?{...item,...update}:item)});
+  const addPackingItem=()=>savePacking({...packing,his:[...packing.his,{id:crypto.randomUUID(),text:'',done:false}]});
+  const removePackingItem=(id:string)=>savePacking({his:packing.his.filter(item=>item.id!==id),hers:packing.hers.filter(item=>item.id!==id)});
+  const packingItems=[...packing.his,...packing.hers];const packingCount=packingItems.filter(item=>item.done).length;const tripCount=tripList.filter(item=>item.done).length;
+  const resizeText=(element:HTMLTextAreaElement)=>{element.style.height='auto';element.style.height=`${element.scrollHeight}px`;};
+  return <><div className="eyebrow">Ready, gently</div><h1 style={{fontSize:'clamp(38px,6vw,64px)'}}>Pack well.<br/>Enjoy the coast.</h1><p className="muted">A shared packing checklist and a during-trip checklist. Your progress saves on this device.</p><div className="stat-row"><span className="stat">{packingCount}/{packingItems.length} packing items · {tripCount}/{tripList.length} during-trip checks done</span></div>{storageMessage&&<p role="status" className="muted">{storageMessage}</p>}
+  <div className="prep-groups"><section className="card"><div className="eyebrow">Before the trip</div><h2>Packing guide</h2><p className="muted">One shared list, editable and saved on this device.</p><div className="checklist">{packingItems.map(item=><div className="checkline" key={item.id}><input className="checkline-checkbox" type="checkbox" checked={item.done} onChange={e=>updatePacking(item.id,{done:e.target.checked})} aria-label={item.text||'Mark packing item done'}/><textarea rows={1} value={item.text} onChange={e=>{updatePacking(item.id,{text:e.target.value});resizeText(e.currentTarget);}} ref={element=>{if(element)resizeText(element);}} aria-label="Edit packing item" placeholder="Add an item" className="checkline-text"/><button className="checkline-delete" type="button" onClick={()=>removePackingItem(item.id)} aria-label="Remove item" style={{border:0,background:'transparent',padding:'4px 8px',color:'var(--muted)',fontSize:20,lineHeight:1,cursor:'pointer'}}>×</button></div>)}<button className="btn soft" type="button" onClick={addPackingItem}>+ Add item</button></div></section>
+  <section className="card"><div className="eyebrow">While you're away</div><h2>During the trip</h2><div className="checklist">{tripList.map(item=><div className="checkline" key={item.id} data-testid={'checkline-'+item.id}><input className="checkline-checkbox" type="checkbox" checked={item.done} onChange={e=>updateTripItem(item.id,{done:e.target.checked})} aria-label={item.text||'Mark trip item done'}/><textarea rows={1} value={item.text} onChange={e=>{updateTripItem(item.id,{text:e.target.value});resizeText(e.currentTarget);}} ref={element=>{if(element)resizeText(element);}} aria-label="Edit trip checklist item" placeholder="Add an item" className="checkline-text"/><button className="checkline-delete" type="button" onClick={()=>removeTripItem(item.id)} aria-label="Remove item" style={{border:0,background:'transparent',padding:'4px 8px',color:'var(--muted)',fontSize:20,lineHeight:1,cursor:'pointer'}}>×</button></div>)}<button className="btn soft" type="button" onClick={addTripItem}>+ Add item</button></div></section></div></>;
 }
 
 function SandFooter(){const countdown=Math.max(0,Math.ceil((new Date('2026-11-27T00:00:00').getTime()-Date.now())/86400000));return <footer className="sand-footer"><div className="footer-inner"><div><div className="eyebrow">BEFORE WE HEAD OUT</div><h2>Everything checked? Then it's just us and the coast.</h2><p>27–30 November 2026 · {countdown} days until we ride out.</p><small style={{display:'block',marginTop:18}}>Bus tickets, ferry and boat timings, tide tables, scooty rental, and resort check-in. One last check, bags packed, and off we go. Four days, two of us, and a little stretch of coast to explore.</small></div><img src={characterAssets.kiss} alt="The couple sharing a sweet moment on their green scooty" className="footer-character"/></div></footer>}
