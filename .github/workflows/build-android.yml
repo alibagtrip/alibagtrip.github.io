@@ -1,0 +1,77 @@
+name: Build Android APK
+
+on:
+  push:
+    branches:
+      - build/android-apk
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-apk-build
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build debug APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Check out APK packaging branch
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.26.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install existing website dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Add Capacitor packages for this cloud build
+        run: |
+          pnpm --filter @workspace/alibaug-trip-guide add @capacitor/core@^8 @capacitor/android@^8
+          pnpm --filter @workspace/alibaug-trip-guide add -D @capacitor/cli@^8
+
+      - name: Build website assets for the Android app
+        run: pnpm --filter @workspace/alibaug-trip-guide build
+        env:
+          PORT: 5000
+          BASE_PATH: /
+
+      - name: Generate Android project and copy bundled website
+        run: |
+          pnpm --filter @workspace/alibaug-trip-guide exec cap add android
+          pnpm --filter @workspace/alibaug-trip-guide exec cap sync android
+
+      - name: Build APK
+        working-directory: artifacts/alibaug-trip-guide/android
+        run: |
+          chmod +x ./gradlew
+          ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: alibaug-trip-guide-debug-apk
+          path: artifacts/alibaug-trip-guide/android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
