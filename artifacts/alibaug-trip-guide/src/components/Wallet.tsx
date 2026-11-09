@@ -139,7 +139,7 @@ async function openNativeFile(blob: Blob, fileName: string): Promise<void> {
   });
   const extension = safeName.split('.').pop()?.toLowerCase();
   const contentType = blob.type || (extension === 'pdf' ? 'application/pdf' : extension === 'png' ? 'image/png' : extension === 'jpg' || extension === 'jpeg' ? 'image/jpeg' : 'application/octet-stream');
-  await FileOpener.open({ filePath: saved.uri, contentType, openWithDefault: true });
+  await FileOpener.open({ filePath: saved.uri, contentType, openWithDefault: false });
 }
 
 export default function Wallet() {
