@@ -1,4 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Capacitor } from '@capacitor/core';
+import { Directory, Filesystem } from '@capacitor/filesystem';
+import { FileOpener } from '@capacitor-community/file-opener';
 import type { FormEvent } from 'react';
 import { BusFront, Ship, Ticket, Hotel, FileText, Pencil } from 'lucide-react';
 import { days } from '@/data/itinerary';
@@ -119,6 +122,26 @@ async function loadItems(): Promise<WalletItem[]> {
   }
 }
 
+async function openNativeFile(blob: Blob, fileName: string): Promise<void> {
+  const dataUrl = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(reader.error ?? new Error('Could not read the document.'));
+    reader.readAsDataURL(blob);
+  });
+  const base64 = dataUrl.slice(dataUrl.indexOf(',') + 1);
+  const safeName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_') || 'wallet-document';
+  const saved = await Filesystem.writeFile({
+    path: `wallet/${Date.now()}-${safeName}`,
+    data: base64,
+    directory: Directory.Cache,
+    recursive: true,
+  });
+  const extension = safeName.split('.').pop()?.toLowerCase();
+  const contentType = blob.type || (extension === 'pdf' ? 'application/pdf' : extension === 'png' ? 'image/png' : extension === 'jpg' || extension === 'jpeg' ? 'image/jpeg' : 'application/octet-stream');
+  await FileOpener.open({ filePath: saved.uri, contentType, openWithDefault: true });
+}
+
 export default function Wallet() {
   const [items, setItems] = useState<WalletItem[]>(defaults);
   const [ready, setReady] = useState(false);
@@ -220,28 +243,36 @@ export default function Wallet() {
   };
 
   const openAttachment = async (item: WalletItem) => {
-    if (item.fileId) {
-      const popup = window.open('', '_blank');
-      if (!popup) {
-        window.alert('Please allow pop-ups to open your document.');
-        return;
-      }
-      try {
-        const blob = await getFile(item.fileId);
-        if (!blob) {
-          popup.close();
-          window.alert('Saved document could not be found.');
-          return;
-        }
-        const url = URL.createObjectURL(blob);
-        popup.location.href = url;
-      } catch {
-        popup.close();
-        window.alert('Could not open the saved document.');
-      }
+    const isNative = Capacitor.isNativePlatform();
+    const popup = isNative ? null : window.open('about:blank', '_blank');
+    if (!isNative && !popup) {
+      window.alert('Please allow pop-ups to open your document.');
       return;
     }
-    if (item.file) window.open(item.file, '_blank', 'noopener,noreferrer');
+
+    try {
+      let blob: Blob | undefined;
+      const name = item.fileName ?? item.file?.split('/').pop() ?? item.title;
+
+      if (item.fileId) {
+        blob = await getFile(item.fileId);
+      } else if (item.file) {
+        const response = await fetch(item.file);
+        if (!response.ok) throw new Error('The document could not be loaded.');
+        blob = await response.blob();
+      }
+
+      if (!blob) throw new Error('Saved document could not be found.');
+
+      if (isNative) {
+        await openNativeFile(blob, name);
+      } else if (popup) {
+        popup.location.href = URL.createObjectURL(blob);
+      }
+    } catch {
+      popup?.close();
+      window.alert('Could not open the saved document. Please check that a PDF or image viewer is installed and try again.');
+    }
   };
 
   if (!ready) return <div className="wallet-page">Loading your wallet...</div>;
