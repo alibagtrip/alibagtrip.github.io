@@ -54,7 +54,7 @@ jobs:
 
       - name: Add Capacitor packages for this cloud build
         run: |
-          pnpm --filter @workspace/alibaug-trip-guide add @capacitor/core@^8 @capacitor/android@^8
+          pnpm --filter @workspace/alibaug-trip-guide add @capacitor/core@^8 @capacitor/android@^8 @capacitor/filesystem@^8 @capacitor-community/file-opener@^8
           pnpm --filter @workspace/alibaug-trip-guide add -D @capacitor/cli@^8
 
       - name: Build website assets for the Android app
