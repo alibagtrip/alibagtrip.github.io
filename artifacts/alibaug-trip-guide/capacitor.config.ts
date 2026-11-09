@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.alibagtrip.guide',
-  appName: 'Alibaug Trip Guide',
+  appId: 'com.alibagtrip.guide.walletfix',
+  appName: 'Alibaug Trip Guide Test',
   webDir: 'dist/public',
 };
 
