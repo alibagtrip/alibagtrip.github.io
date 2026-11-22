@@ -13,6 +13,8 @@ import { places } from '@/data/places';
 import { packingDefaults, duringTripItems } from '@/data/checklists';
 import { characterAssets } from '@/data/assets';
 import Wallet from '@/components/Wallet';
+import { SplashVideo } from '@/components/SplashVideo';
+import AppIconButton from '@/components/AppIconButton';
 import NotFound from '@/pages/not-found';
 import './index.css';
 import './map-page.css';
@@ -74,7 +76,7 @@ function GuideApp(){
    <Route component={NotFound}/>
  </Switch></main><SandFooter/><BottomNav location={location}/></div>{stampRipple&&<div className="ripple" aria-hidden="true"/>}{toast&&<div className="toast" role="status" data-testid="status-toast">{toast}</div>}</AppContext.Provider>;
 }
-function App(){return <Router hook={useHashLocation}><GuideApp/></Router>}
+function App(){return <><SplashVideo/><Router hook={useHashLocation}><GuideApp/></Router></>}
 type Context={saved:Saved;setSaved:React.Dispatch<React.SetStateAction<Saved>>;location:string;setLocation:(path:string)=>void;notify:(m:string)=>void;toggleDone:(id:string)=>void;toggleCheck:(id:string)=>void;tripDays:TripDay[];setTripDays:React.Dispatch<React.SetStateAction<TripDay[]>>};
 const AppContext=React.createContext<Context|null>(null);
 const LazyJourneyScene=lazy(()=>import('@/components/JourneyScene'));
@@ -82,7 +84,7 @@ function useGuide(){const c=React.useContext(AppContext);if(!c)throw new Error('
 
 function Header({location}:{location:string}){
  const links=[['Home','/'],['Journey','/journey'],['Map','/map'],['Wallet','/wallet'],['Prep','/prep']];
- return <header className="topbar"><Link href="/" className="brand" data-testid="link-home"><span className="brand-mark" aria-hidden="true">A</span><span>Alibag <span style={{color:'var(--coral)'}}>Pocket Guide</span></span></Link><nav className="nav-links" aria-label="Main navigation">{links.map(([label,path])=><Link key={label} href={path} className={`nav-link ${location===path?'active':''}`} data-testid={`nav-${label.toLowerCase()}`}>{label}</Link>)}</nav><Link href="/map" className="icon-button" aria-label="Open map" data-testid="header-map"><MapIcon size={19} strokeWidth={1.8}/></Link></header>
+ return <header className="topbar"><Link href="/" className="brand" data-testid="link-home"><span className="brand-mark" aria-hidden="true">A</span><span>Alibag <span style={{color:'var(--coral)'}}>Pocket Guide</span></span></Link><nav className="nav-links" aria-label="Main navigation">{links.map(([label,path])=><Link key={label} href={path} className={`nav-link ${location===path?'active':''}`} data-testid={`nav-${label.toLowerCase()}`}>{label}</Link>)}</nav><Link href="/map" className="icon-button" aria-label="Open map" data-testid="header-map"><MapIcon size={19} strokeWidth={1.8}/></Link><AppIconButton/></header>
 }
 function BottomNav({location}:{location:string}){const entries=[{label:'Home',path:'/',icon:HomeIcon},{label:'Journey',path:'/journey',icon:MapIcon},{label:'Wallet',path:'/wallet',icon:WalletCards},{label:'Prep',path:'/prep',icon:ListChecks}];return <nav className="bottom-nav" aria-label="Quick navigation">{entries.map(({label,path,icon:Icon})=><Link href={path} className={location===path?'active':''} key={label} data-testid={`bottom-${label.toLowerCase()}`}><Icon size={21} strokeWidth={1.8} aria-hidden="true"/>{label}</Link>)}</nav>}
 
